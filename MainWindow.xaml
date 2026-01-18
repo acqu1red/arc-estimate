@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="estimate1.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:estimate1"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    mc:Ignorable="d"
+    Title="ARC-Estimate">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <!-- Меню -->
+            <RowDefinition Height="Auto"/>
+            <!-- Основное содержимое -->
+            <RowDefinition Height="*"/>
+            <!-- Статусная строка -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Верхняя панель меню -->
+        <MenuBar Grid.Row="0">
+            <MenuBarItem Title="Файл">
+            <MenuFlyoutItem Text="Создать" Click="OnNewProjectClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE130;" FontFamily="Segoe MDL2 Assets"/>
+                </MenuFlyoutItem.Icon>
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="N"/>
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Открыть..." Click="OnOpenProjectClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE8E5;" FontFamily="Segoe MDL2 Assets"/>
+                </MenuFlyoutItem.Icon>
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="O"/>
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Сохранить" Click="OnSaveProjectClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE105;" FontFamily="Segoe MDL2 Assets"/>
+                </MenuFlyoutItem.Icon>
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="S"/>
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Сохранить как..." Click="OnSaveProjectAsClick"/>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Импорт DXF..." Click="OnImportDxfClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE7C3;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Импорт IFC..." Click="OnImportIfcClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Конвертировать DXF в стены" Click="OnConvertDxfToWallsClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE8AB;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Конвертировать IFC в стены" Click="OnConvertIfcToWallsClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE8AB;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Экспорт сметы в Excel..." Click="OnExportEstimateClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE9F9;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Экспорт сметы в CSV..." Click="OnExportEstimateCsvClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE130;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Показать сводку сметы" Click="OnShowEstimateSummaryClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE8A1;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Экспорт чертежа в PDF..." Click="OnExportPdfClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE7C5;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Выход"/>
+            </MenuBarItem>
+            <MenuBarItem Title="Правка">
+                <MenuFlyoutItem Text="Отменить" Click="OnUndoClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE10E;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="Z"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Повторить" Click="OnRedoClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE10D;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="Y"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Удалить">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE107;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Delete"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Редактор типов стен..." Click="OnWallTypeEditorClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE70F;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+            </MenuBarItem>
+            <MenuBarItem Title="Вид">
+                <MenuFlyoutItem Text="Масштаб 1:50"/>
+                <MenuFlyoutItem Text="Масштаб 1:100"/>
+                <MenuFlyoutSeparator/>
+                <ToggleMenuFlyoutItem Text="Сетка" IsChecked="True"/>
+                <ToggleMenuFlyoutItem x:Name="DimensionsToggle" 
+                                      Text="Размеры" 
+                                      IsChecked="True"
+                                      Click="OnDimensionsToggleClick"/>
+                <ToggleMenuFlyoutItem x:Name="AutoDimensionsToggle" 
+                                      Text="Авторазмеры" 
+                                      IsChecked="True"
+                                      Click="OnAutoDimensionsToggleClick"/>
+            </MenuBarItem>
+            <MenuBarItem Title="Справка">
+                <MenuFlyoutItem Text="Запустить тесты" Click="OnRunTestsClick">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE768;" FontFamily="Segoe MDL2 Assets"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="О программе..." Click="OnAboutClick"/>
+                    </MenuBarItem>
+                </MenuBar>
+
+                <!-- Основная область с панелями -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- Левая панель инструментов -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Центральная область с холстом -->
+                <ColumnDefinition Width="*"/>
+                <!-- Правая панель свойств -->
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая панель инструментов -->
+            <Border Grid.Column="0" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,1,0"
+                    Width="60">
+                <StackPanel Margin="4">
+                    <TextBlock Text="Инструменты" 
+                               FontSize="10" 
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,8"/>
+                    
+                    <!-- Кнопка выбора -->
+                    <Button x:Name="SelectToolButton" 
+                            ToolTipService.ToolTip="Выбор (V)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnSelectToolClick">
+                        <FontIcon Glyph="&#xE8B3;" FontSize="20"/>
+                    </Button>
+                    
+                    <!-- Кнопка стены -->
+                    <Button x:Name="WallToolButton"
+                            ToolTipService.ToolTip="Стена (W)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnWallToolClick">
+                        <FontIcon Glyph="&#xE737;" FontSize="20"/>
+                    </Button>
+                    
+                    <!-- Кнопка двери -->
+                    <Button x:Name="DoorToolButton"
+                            ToolTipService.ToolTip="Дверь (D)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnDoorToolClick">
+                        <FontIcon Glyph="&#xE7AD;" FontSize="20"/>
+                    </Button>
+                    
+                    <!-- Кнопка окна -->
+                    <Button x:Name="WindowToolButton"
+                            ToolTipService.ToolTip="Окно (O)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnWindowToolClick">
+                        <FontIcon Glyph="&#xE739;" FontSize="20"/>
+                    </Button>
+                    
+                    <!-- Разделитель -->
+                    <Border Height="1" 
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            Margin="4,8"/>
+                    
+                    <!-- Кнопка размера -->
+                    <Button x:Name="DimensionToolButton"
+                            ToolTipService.ToolTip="Размер (R)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnDimensionToolClick">
+                        <FontIcon Glyph="&#xE8C9;" FontSize="20"/>
+                    </Button>
+
+                    <!-- Разделитель -->
+                    <Border Height="1" 
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            Margin="4,8"/>
+
+                    <!-- Кнопка Trim/Extend -->
+                    <Button x:Name="TrimExtendToolButton"
+                            ToolTipService.ToolTip="Обрезать/Удлинить (TR)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnTrimExtendToolClick">
+                        <FontIcon Glyph="&#xE759;" FontSize="20"/>
+                    </Button>
+
+                    <!-- Кнопка Split -->
+                    <Button x:Name="SplitToolButton"
+                            ToolTipService.ToolTip="Разделить (SL)"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnSplitToolClick">
+                        <FontIcon Glyph="&#xE8E6;" FontSize="20"/>
+                    </Button>
+
+                    <!-- Разделитель -->
+                    <Border Height="1" 
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            Margin="4,8"/>
+
+                    <!-- Структурные элементы -->
+                    <Button x:Name="ColumnToolButton"
+                            ToolTipService.ToolTip="Колонна"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnColumnToolClick">
+                        <FontIcon Glyph="&#xE756;" FontSize="20"/>
+                    </Button>
+
+                    <Button x:Name="SlabToolButton"
+                            ToolTipService.ToolTip="Перекрытие"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnSlabToolClick">
+                        <FontIcon Glyph="&#xE7c9;" FontSize="20"/>
+                    </Button>
+                    
+                    <Button x:Name="BeamToolButton"
+                            ToolTipService.ToolTip="Балка"
+                            Width="48" Height="48" 
+                            Margin="0,2"
+                            Click="OnBeamToolClick">
+                        <FontIcon Glyph="&#xE75a;" FontSize="20"/>
+                    </Button>
+                </StackPanel>
+
+            </Border>
+
+            <!-- Центральная область с вкладками и холстом -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Вкладки планов -->
+                <Border Grid.Row="0" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" Margin="4">
+                        <RadioButton x:Name="MeasureViewTab"
+                                     Content="Обмерный"
+                                     GroupName="PlanViews"
+                                     IsChecked="True"
+                                     Style="{StaticResource DefaultRadioButtonStyle}"
+                                     Checked="OnViewTabChanged"/>
+                        <RadioButton x:Name="DemolitionViewTab"
+                                     Content="Демонтаж"
+                                     GroupName="PlanViews"
+                                     Style="{StaticResource DefaultRadioButtonStyle}"
+                                     Checked="OnViewTabChanged"/>
+                        <RadioButton x:Name="ConstructionViewTab"
+                                     Content="Новый"
+                                     GroupName="PlanViews"
+                                                              Style="{StaticResource DefaultRadioButtonStyle}"
+                                                              Checked="OnViewTabChanged"/>
+                                             </StackPanel>
+                                         </Border>
+
+                                         <!-- Холст для рисования Win2D -->
+                                         <Border Grid.Row="1" 
+                                                 Background="#FFFAFAFA"
+                                                 Margin="0"
+                                                 IsTabStop="True"
+                                                 KeyDown="OnCanvasKeyDown">
+                                             <canvas:CanvasControl x:Name="DrawingCanvas"
+                                                                   Draw="OnCanvasDraw"
+                                                                   CreateResources="OnCanvasCreateResources"
+                                                                   PointerPressed="OnCanvasPointerPressed"
+                                                                   PointerMoved="OnCanvasPointerMoved"
+                                                                   PointerReleased="OnCanvasPointerReleased"
+                                                                   PointerWheelChanged="OnCanvasPointerWheelChanged"
+                                                                   SizeChanged="OnCanvasSizeChanged"/>
+                                         </Border>
+                                     </Grid>
+
+            <!-- Правая панель свойств -->
+            <Border Grid.Column="2"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1,0,0,0"
+                    Width="240">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="Свойства" 
+                                   FontSize="16" 
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12"/>
+                        
+                        <!-- Информация о проекте -->
+                        <TextBlock Text="Проект"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,0,0,4"/>
+                        <TextBox x:Name="ProjectNameTextBox"
+                                 PlaceholderText="Название проекта"
+                                 Text="{x:Bind ViewModel.ProjectName, Mode=TwoWay}"
+                                 Margin="0,0,0,16"/>
+
+
+                        <!-- Разделитель -->
+                        <Border Height="1" 
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                Margin="0,0,0,16"/>
+
+                        <!-- Панель слоёв -->
+                        <TextBlock Text="Слои"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,0,0,8"/>
+
+                        <StackPanel x:Name="LayersPanel" Spacing="4">
+                            <!-- Слой: Существующее -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" 
+                                        Width="16" Height="16" 
+                                        Background="#FF282828"
+                                        CornerRadius="2"
+                                        Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="Существующее" 
+                                           VerticalAlignment="Center"
+                                           FontSize="12"/>
+                                <CheckBox Grid.Column="2" 
+                                x:Name="ExistingLayerCheckBox"
+                                IsChecked="True"
+                                Checked="OnLayerVisibilityChanged"
+                                Unchecked="OnLayerVisibilityChanged"
+                                MinWidth="0" Padding="0"/>
+                            </Grid>
+                            
+                            <!-- Слой: Демонтаж -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" 
+                                        Width="16" Height="16" 
+                                        Background="#FFC83232"
+                                        CornerRadius="2"
+                                        Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="Демонтаж" 
+                                           VerticalAlignment="Center"
+                                           FontSize="12"/>
+                                <CheckBox Grid.Column="2" 
+                                x:Name="DemolishLayerCheckBox"
+                                IsChecked="False"
+                                Checked="OnLayerVisibilityChanged"
+                                Unchecked="OnLayerVisibilityChanged"
+                                MinWidth="0" Padding="0"/>
+                            </Grid>
+                            
+                            <!-- Слой: Новое -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" 
+                                        Width="16" Height="16" 
+                                        Background="#FF3264C8"
+                                        CornerRadius="2"
+                                        Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="Новое" 
+                                           VerticalAlignment="Center"
+                                           FontSize="12"/>
+                                <CheckBox Grid.Column="2" 
+                                x:Name="NewLayerCheckBox"
+                                IsChecked="False"
+                                Checked="OnLayerVisibilityChanged"
+                                Unchecked="OnLayerVisibilityChanged"
+                                MinWidth="0" Padding="0"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Разделитель -->
+                        <Border Height="1" 
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                Margin="0,16,0,16"/>
+
+                        <!-- Свойства выбранного элемента -->
+                        <TextBlock Text="Выбранный элемент"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,0,0,8"/>
+                        
+                        <TextBlock x:Name="SelectedElementInfo"
+                                   Text="Ничего не выбрано"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   FontStyle="Italic"
+                                   Margin="0,0,0,16"/>
+
+                        <!-- Свойства стены (будет показано при выборе стены) -->
+                        <StackPanel x:Name="WallPropertiesPanel" Visibility="Collapsed">
+                            <TextBlock Text="Тип стены"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <ComboBox x:Name="WallTypeComboBox"
+                                      SelectedIndex="-1"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnWallTypeChanged"
+                                      Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Слои"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <TextBlock x:Name="WallLayersText"
+                                       Text=""
+                                       TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Толщина (мм)"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <NumberBox x:Name="WallThicknessBox"
+                                       Value="150"
+                                       Minimum="50"
+                                       Maximum="1000"
+                                       SpinButtonPlacementMode="Compact"
+                                        ValueChanged="OnWallThicknessChanged"
+                                       Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Рабочее состояние"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <ComboBox x:Name="WorkStateComboBox"
+                                      SelectedIndex="0"
+                                      HorizontalAlignment="Stretch"
+                                       SelectionChanged="OnWallWorkStateChanged"
+                                      Margin="0,0,0,12">
+                                <ComboBoxItem Content="Существующее"/>
+                                <ComboBoxItem Content="Снести"/>
+                                <ComboBoxItem Content="Новое"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Линия размещения"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <ComboBox x:Name="LocationLineComboBox"
+                                      SelectedIndex="0"
+                                       HorizontalAlignment="Stretch"
+                                       SelectionChanged="OnWallLocationLineChanged">
+                                <ComboBoxItem Content="Ось стены"/>
+                                <ComboBoxItem Content="Ось несущего слоя"/>
+                                <ComboBoxItem Content="Наружная чистовая"/>
+                                <ComboBoxItem Content="Внутренняя чистовая"/>
+                                <ComboBoxItem Content="Наружная несущая"/>
+                                <ComboBoxItem Content="Внутренняя несущая"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Свойства размера (M3.5) -->
+                        <StackPanel x:Name="DimensionPropertiesPanel" Visibility="Collapsed">
+                            <TextBlock Text="Авторазмер"
+                                       FontSize="12"
+                                       Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Offset (мм)"
+                                       FontSize="12"
+                                       Margin="0,0,0,4"/>
+                            <NumberBox x:Name="DimensionOffsetBox"
+                                       Value="200"
+                                       Minimum="0"
+                                       Maximum="5000"
+                                       SpinButtonPlacementMode="Compact"
+                                       ValueChanged="OnDimensionOffsetChanged"
+                                       Margin="0,0,0,12"/>
+
+                            <CheckBox x:Name="DimensionLockCheckBox"
+                                      Content="Anchor Lock"
+                                      Checked="OnDimensionLockChanged"
+                                      Unchecked="OnDimensionLockChanged"
+                                      Margin="0,0,0,12"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Статусная строка -->
+        <Border Grid.Row="2"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="12,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="StatusTextBlock"
+                           Grid.Column="0"
+                           Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                           VerticalAlignment="Center"
+                           FontSize="12"/>
+
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal"
+                            Spacing="16">
+                    
+                    <!-- M5.6: Snap Mode Selector -->
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="Привязка:"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <ComboBox x:Name="SnapModeComboBox"
+                                  SelectedIndex="0"
+                                  MinWidth="120"
+                                  FontSize="12">
+                            <ComboBoxItem Content="Авто"/>
+                            <ComboBoxItem Content="Ось стены"/>
+                            <ComboBoxItem Content="Наружная"/>
+                            <ComboBoxItem Content="Внутренняя"/>
+                            <ComboBoxItem Content="Ядро (нар.)"/>
+                            <ComboBoxItem Content="Ядро (вн.)"/>
+                        </ComboBox>
+                        <TextBlock x:Name="SnapIndicatorText"
+                                   Text=""
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                   Margin="8,0,0,0"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Масштаб: 1:50"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

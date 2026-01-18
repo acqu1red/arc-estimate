@@ -1,0 +1,60 @@
+namespace estimate1
+{
+    // Перечисление рабочих состояний элементов
+    enum WorkState
+    {
+        Existing,   // Существующее
+        Demolish,   // Под снос
+        New         // Новое
+    };
+
+    // Перечисление инструментов рисования
+    enum DrawingTool
+    {
+        None,       // Нет инструмента
+        Select,     // Выбор
+        Wall,       // Стена
+        Door,       // Дверь
+        Window,     // Окно
+        Dimension,  // Размер
+        TrimExtend, // Обрезать/Удлинить
+        Split,      // Разделить
+        Column,     // Колонна
+        Slab,       // Перекрытие
+        Beam        // Балка
+    };
+
+    // Перечисление активных видов плана
+    enum PlanView
+    {
+        Measure,     // Обмерный план
+        Demolition,  // План демонтажа
+        Construction // План нового строительства
+    };
+
+    // Модель представления главного окна
+    [default_interface]
+    runtimeclass MainViewModel : Microsoft.UI.Xaml.Data.INotifyPropertyChanged
+    {
+        MainViewModel();
+
+        // Текущий выбранный инструмент
+        DrawingTool CurrentTool;
+        
+        // Текущий активный вид
+        PlanView ActiveView;
+        
+        // Координаты курсора в мировых единицах (мм)
+        Double CursorX;
+        Double CursorY;
+        
+        // Текст статусной строки
+        String StatusText{ get; };
+        
+        // Есть ли несохранённые изменения
+        Boolean HasUnsavedChanges;
+        
+        // Название проекта
+        String ProjectName;
+    }
+}

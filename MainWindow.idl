@@ -1,0 +1,13 @@
+import "MainViewModel.idl";
+
+namespace estimate1
+{
+    [default_interface]
+    runtimeclass MainWindow : Microsoft.UI.Xaml.Window
+    {
+        MainWindow();
+        
+        // Модель представления главного окна
+        MainViewModel ViewModel{ get; };
+    }
+}

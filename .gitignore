@@ -1,0 +1,114 @@
+# ARC-Estimate .gitignore
+# Исключение файлов сборки и временных файлов Visual Studio
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio generated files
+Generated Files/
+*.g.h
+*.g.cpp
+*.g.idl
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+*.msix
+*.msixbundle
+*.msixupload
+
+# NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/repositories.config
+!**/[Pp]ackages/*.config
+
+# Build outputs
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.log
+*.lib
+*.sbr
+*.sdf
+*.opensdf
+*.opendb
+*.ipdb
+*.iobj
+*.exp
+*.lastbuildstate
+*.tlog/
+
+# IntelliSense and code database
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+*.VC.VC.opendb
+ipch/
+*.ipch
+
+# NCrunch
+*.ncrunch*
+_NCrunch_*
+.*crunch*.local.xml
+
+# Chutzpah Test files
+_Chutzpah*
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Rider
+.idea/
+
+# Misc
+*.bak
+*.cache
+*.tmp
+*.temp
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Windows image file caches
+[Tt]humbs.db
+
+# Mac
+.DS_Store
+
+# PRI generated files
+*.pri
+
+# Телеметрия Copilot / Copilot telemetry
+.copilot/
+
+# User-specific files
+*.rsuser
+*.user
+*.userosscache
+*.sln.docstates

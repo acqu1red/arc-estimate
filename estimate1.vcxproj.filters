@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="MainWindow.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="MainWindow.idl" />
+    <Midl Include="MainViewModel.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+    <ClCompile Include="MainViewModel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="MainViewModel.h" />
+    <ClInclude Include="AutoDimensionManager.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Dimension.h" />
+    <ClInclude Include="DimensionRenderer.h" />
+    <ClInclude Include="DrawingTools.h" />
+    <ClInclude Include="DxfParser.h" />
+    <ClInclude Include="DxfReference.h" />
+    <ClInclude Include="DxfReferenceRenderer.h" />
+    <ClInclude Include="Element.h" />
+    <ClInclude Include="GridRenderer.h" />
+    <ClInclude Include="IfcParser.h" />
+    <ClInclude Include="IfcReference.h" />
+    <ClInclude Include="IfcReferenceRenderer.h" />
+    <ClInclude Include="Layer.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Models.h" />
+    <ClInclude Include="WallJoinManager.h" />
+    <ClInclude Include="WallRenderer.h" />
+    <ClInclude Include="WallSnapRenderer.h" />
+    <ClInclude Include="WallSnapSystem.h" />
+    <ClInclude Include="WallType.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="ProjectSerializer.h" />
+    <ClInclude Include="UndoManager.h" />
+    <ClInclude Include="WallTypeEditor.h" />
+    <ClInclude Include="EstimationEngine.h" />
+    <ClInclude Include="ExcelExporter.h" />
+    <ClInclude Include="PdfExporter.h" />
+    <ClInclude Include="Tests.h" />
+    <ClInclude Include="WallJoinSystem.h" />
+    <ClInclude Include="Opening.h" />
+    <ClInclude Include="OpeningRenderer.h" />
+    <ClInclude Include="OpeningTools.h" />
+    <ClInclude Include="EditTools.h" />
+    <ClInclude Include="Room.h" />
+    <ClInclude Include="RoomDetector.h" />
+    <ClInclude Include="RoomRenderer.h" />
+    <ClInclude Include="Zone.h" />
+    <ClInclude Include="Structure.h" />
+    <ClInclude Include="StructureRenderer.h" />
+    <ClInclude Include="StructureTools.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{1893fbf8-d4b3-4387-8ae8-ece46bab817c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt" />
+    <Text Include="docs\arc_estimate_full_engineering_logic.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\estimate\docs\megapromt.md" />
+    <None Include=".gitignore" />
+    <None Include="docs\ROADMAP.md" />
+    <None Include="docs\PROGRESS.md" />
+    <None Include="docs\Русская_документация.md" />
+    <None Include="docs\DECISIONS.md" />
+    <None Include="dxf files\Рабочка_Комсомольский_План_этажа_02_Обмерочный_план.dxf" />
+    <None Include="dxf files\Рабочка_Комсомольский_План_этажа_03_План_демонтажа.dxf" />
+    <None Include="dxf files\Рабочка_Комсомольский_План_этажа_05_План_монтажа.dxf" />
+    <None Include="promt_upgrade.md" />
+    <None Include="wall.md" />
+    <None Include="docs\M6_SaveLoad.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natstepfilter" />
+  </ItemGroup>
+</Project>

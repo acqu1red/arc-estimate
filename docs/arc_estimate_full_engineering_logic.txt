@@ -1,0 +1,353 @@
+
+# ARC-Estimate: Full Engineering Documentation
+## Logic for Walls, Connections, Layers, DXF/DWG, and CAD Core
+
+---
+
+### 1) General Description of Goals
+
+ARC-Estimate is a **2D CAD-BIM hybrid** combining simplicity in drawing with **Revit-like wall behavior, WorkState management, layers, auto-dimensions, and estimation**.
+
+### Key Design Goals:
+- **Draw accurate plans in millimeters**
+- **Auto-dimensions** for walls, openings, and offsets
+- **DXF/DWG/IFC import/export**
+- **Revit-like behavior for walls, connections, and snapping**
+- **Material hatching and wall styles**
+- **Scalable and extendable architecture** for future feature development.
+
+---
+
+### 2) Architecture Concepts
+
+| Module      | Responsibility |
+|-------------|----------------|
+| Core        | Core data types (Vector, Matrix, GUID) |
+| Geometry    | Geometric primitives, intersections, vectors |
+| Entities    | Walls, openings, dimensions, layers |
+| Document    | Element collections, undo/redo, WorkState management |
+| Rendering   | Win2D for GPU-accelerated rendering |
+| Import      | DXF/DWG/IFC Parsing and Data Handling |
+| Export      | PDF/Excel Generation |
+| UI          | ViewModels, UI commands, panels |
+
+---
+
+### 3) Layer System
+
+#### 3.1 Classes for Layer Management
+
+```cpp
+struct Layer {
+    std::string name;
+    bool isVisible = true;
+    bool isLocked = false;
+    Color displayColor = Colors::Black;
+    WorkState linkedWorkState; // Existing/Demolish/New
+};
+
+class LayerManager {
+public:
+    void addLayer(const Layer&);
+    void removeLayer(const std::string& name);
+    void setLayerVisible(const std::string&, bool);
+    std::vector<Layer> getLayers() const;
+private:
+    std::vector<Layer> layers;
+};
+```
+
+#### 3.2 Visibility Toggle
+
+- **Layer visibility toggle** based on active WorkState. 
+- User should be able to turn layers on/off via UI.
+- This can be integrated into a **LayerManager** to control visibility of elements.
+
+---
+
+### 4) Geometry and World Coordinate System
+
+#### 4.1 World to Screen Transformation
+
+We will create **Camera** for coordinate transformation from world coordinates to screen pixels.
+
+```cpp
+struct Camera {
+    Vector2 panOffset;  // World to screen conversion (mm → px)
+    double zoomFactor;  // Zoom scaling factor
+
+    Point worldToScreen(Point mm) const;
+    Point screenToWorld(Point px) const;
+};
+```
+
+---
+
+### 5) Wall Drawing Algorithms
+
+#### 5.1 Wall Geometry Model
+
+Each wall is represented by two points (start and end), thickness, and type. The wall geometry is calculated from these points.
+
+```cpp
+class Wall : public Element {
+public:
+    Point start, end;
+    double thickness;
+    WallType* type;
+
+    // Calculate the contour of the wall based on thickness and location line
+    std::vector<Point> getContour() const;
+};
+```
+
+#### 5.2 Drawing Contour (Walls)
+
+Walls are drawn by offsetting the wall axis to create its **contour**:
+
+```cpp
+Vector2 direction = normalize(end - start);  // Direction of the wall
+Vector2 perp = (direction.y, -direction.x);  // Perpendicular vector
+double halfThickness = thickness / 2;
+
+Point p1 = start + perp * halfThickness;
+Point p2 = start - perp * halfThickness;
+Point p3 = end + perp * halfThickness;
+Point p4 = end - perp * halfThickness;
+```
+
+---
+
+### 6) Snapping Logic and Behavior
+
+#### 6.1 Snap Modes
+
+Snapping behavior for the wall tool should include:
+
+| Snap      | Description         |
+|-----------|---------------------|
+| Grid      | Snap to grid points |
+| End       | Snap to line endpoints |
+| Mid       | Snap to midpoints of lines |
+| Perp      | Perpendicular snapping |
+| Intersection | Snap to intersections of walls |
+
+#### 6.2 Snapping Algorithm
+
+```cpp
+std::optional<SnapPoint> findNearestSnap(Point cursor) {
+    double bestDist = snapTolerance;
+    SnapPoint result;
+
+    for (auto& ent : document.entities) {
+        for (auto& sp : ent.getSnapPoints()) {
+            double d = distance(cursor, sp.position);
+            if (d < bestDist) {
+                bestDist = d;
+                result = sp;
+            }
+        }
+    }
+    return bestDist < snapTolerance ? std::make_optional(result) : std::nullopt;
+}
+```
+
+---
+
+### 7) Wall Types and LocationLine Modes
+
+Each wall can have different **LocationLineModes**:
+
+```cpp
+enum class LocationLineMode {
+    Centerline,
+    CoreCenterline,
+    FinishFaceExterior,
+    FinishFaceInterior,
+    CoreFaceExterior,
+    CoreFaceInterior
+};
+```
+
+#### 7.1 LocationLine Calculation
+
+Walls need to be placed using **Reference Line** with modes such as **Centerline** or **FinishFace**:
+
+```cpp
+double offsetValue = 0.0;
+switch (mode) {
+    case LocationLineMode::Centerline:
+        offsetValue = 0;
+        break;
+    case LocationLineMode::FinishFaceExterior:
+        offsetValue = +type->coreOffset();
+        break;
+    // Other cases
+}
+```
+
+---
+
+### 8) Wall Joins (T, L, X-joins)
+
+#### 8.1 T-Join Logic
+
+For **T-Joins**:
+
+```cpp
+intersection = intersectLines(wallA.axis, wallB.axis);
+if (intersection) {
+    wallA.trimEnd(*intersection);
+    wallB.trimEnd(*intersection);
+}
+```
+
+#### 8.2 L-Join Logic
+
+For **L-Joins**:
+
+```cpp
+proj = project(wallA.axis, wallB.end);
+wallB.trimEnd(proj);
+```
+
+---
+
+### 9) Openings (Doors/Windows)
+
+#### 9.1 Door/Window Definition
+
+Openings are represented by a separate class with wall and offset:
+
+```cpp
+class Opening : public Element {
+public:
+    Wall* host;
+    double offsetFromStart; // mm
+    double width;
+};
+```
+
+---
+
+### 10) Auto-Dimensions Engine
+
+#### 10.1 Dimension Chain Class
+
+```cpp
+class Dimension {
+public:
+    Point a, b;
+    bool isAuto;
+    double valueMM;
+    bool isLocked;
+    std::string textOverride;
+};
+
+class DimensionChain {
+public:
+    std::vector<Dimension> dimensions;
+    void addDimension(Dimension dim);
+};
+```
+
+---
+
+### 11) Material Rendering (Hatching)
+
+Each material should be represented visually with **hatching patterns**. 
+
+```cpp
+void drawHatch(CanvasDrawingSession ds, const vector<Point>& contour, Material mat) {
+    switch (mat) {
+        case Material::Brick:
+            drawBrickPattern(ds, contour);
+            break;
+        case Material::Gypsum:
+            drawGypsumPattern(ds, contour);
+            break;
+        case Material::Concrete:
+            drawConcretePattern(ds, contour);
+            break;
+    }
+}
+```
+
+---
+
+### 12) DXF/DWG Importer Architecture
+
+#### 12.1 Using `libdxfrw` for DXF Parsing
+
+```cpp
+#include "drw_interface.h"
+#include "drw_reader.h"
+
+class MyDXF : public DRW_Interface {
+  void addLine(const DL_LineData& data) override {
+      ds.push_back(Line(data.x1,data.y1, data.x2,data.y2));
+  }
+  // Handle other entities like Circle, Polyline, etc.
+};
+```
+
+---
+
+### 13) IFC Import Architecture
+
+Using **IfcOpenShell** for parsing IFC files:
+
+```cpp
+// Parse IFC Walls, Doors, and Rooms
+void parseIFC(const std::string& ifcFile) {
+    // Logic to map IfcWall to Wall, IfcDoor to Opening, and IfcSpace to Room
+}
+```
+
+---
+
+### 14) Undo/Redo Architecture
+
+Using **Command Pattern** for Undo/Redo:
+
+```cpp
+class ICommand {
+public:
+    virtual void execute() = 0;
+    virtual void undo() = 0;
+};
+```
+
+---
+
+### 15) Save/Load Logic (JSON Serialization)
+
+```json
+{
+ "version":"1.0",
+ "camera":{…},
+ "layers":[…],
+ "walls":[…],
+ "dimensions":[…]
+}
+```
+
+---
+
+### 16) Plan Export (PDF, Excel)
+
+For exporting plans, we’ll use **libharu** (for PDF) and **libxlsxwriter** (for Excel).
+
+---
+
+### 17) Final Instructions for Opus
+
+1. **Wall Drawing**: Adapt the snapping behavior and implement **T/L/X joins** as described above.
+2. **DXF Import**: Use **libdxfrw** and ensure accurate parsing of **lines, polylines**, and **layers**.
+3. **Material Rendering**: Implement **hatch patterns** for different materials.
+4. **Undo/Redo**: Implement a **command-based** system to track wall creation and modification.
+5. **Documentation**: Update **PROGRESS.md** and **ROADMAP.md** after each step to reflect the progress.
+
+---
+
+# End of Documentation
