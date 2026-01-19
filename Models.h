@@ -63,6 +63,14 @@ namespace winrt::estimate1
         CoreFaceInterior
     };
 
+    // R-WALL: Новый упрощенный режим привязки стен (3 режима вместо 6)
+    enum class WallAttachmentMode
+    {
+        Core,               // Осевая линия (центр ядра стены)
+        FinishExterior,     // Чистовая поверхность: наружная
+        FinishInterior      // Чистовая поверхность: внутренняя
+    };
+
     class Wall : public Element
     {
     public:
@@ -73,7 +81,7 @@ namespace winrt::estimate1
             , m_endPoint(end)
             , m_thickness(thickness)
         {
-            m_name = L"�����";
+            m_name = L"�����";
         }
 
         WorldPoint GetStartPoint() const { return m_startPoint; }
@@ -96,7 +104,7 @@ namespace winrt::estimate1
             SyncThicknessFromType();
         }
 
-        // �������� ����� �� ���� (��� ��������� �������)
+        // �������� ����� �� ���� (��� ��������� �������)
         void ClearType()
         {
             m_type = nullptr;

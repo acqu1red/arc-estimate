@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(msbuild:*)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\MSBuild.exe\" estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /v:minimal /nologo)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\MSBuild.exe\" estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /nologo)",
+      "Bash(verbosity=normal)",
+      "Bash(cmd /c \"msbuild estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /fl /flp:logfile=build.log;verbosity=normal 2>&1\")",
+      "Bash(cmd /c \"where msbuild\")",
+      "Bash(where:*)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\" \"C:\\\\Users\\\\acqui\\\\source\\\\repos\\\\estimate1\\\\estimate1.vcxproj\" /p:Configuration=Debug /p:Platform=x64 /t:Clean)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\" \"C:\\\\Users\\\\acqui\\\\source\\\\repos\\\\estimate1\\\\estimate1.vcxproj\" /p:Configuration=Debug /p:Platform=x64 /m:1 /v:minimal)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\" estimate1.vcxproj -p:Configuration=Debug -p:Platform=x64 -m:1 -v:minimal)",
+      "Bash(powershell -Command \"Get-Command msbuild -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\" estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /m /nologo)",
+      "Bash(cmd /c \"\"\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\"\" estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /nologo 2>&1\")",
+      "Bash(cmd /c build_temp.bat)",
+      "Bash(powershell -NoProfile -Command \"& ''C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe'' estimate1.vcxproj /p:Configuration=Debug /p:Platform=x64 /nologo /v:minimal 2>&1 | Select-Object -Last 50\")",
+      "Bash(powershell:*)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\MSBuild.exe\" \"C:\\\\Users\\\\acqui\\\\source\\\\repos\\\\estimate1\\\\estimate1.vcxproj\" /p:Configuration=Debug /p:Platform=x64 /nologo /v:minimal)",
+      "Bash(cmd.exe /c \"where msbuild\")",
+      "Bash(cmd.exe /c build.bat)",
+      "Bash(cmd.exe /c \"dir /s /b \"\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\*MSBuild.exe\"\" 2>nul | head -1\")",
+      "Bash(build.bat)",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\acqui\\\\source\\\\repos\\\\estimate1 && build.bat\")",
+      "Bash(cmd /c:*)"
+    ]
+  }
+}

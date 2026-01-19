@@ -37,10 +37,10 @@ namespace winrt::estimate1::implementation
     {
         MainWindow();
 
-        // Свойство модели представления
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         estimate1::MainViewModel ViewModel();
 
-        // Обработчики событий инструментов
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void OnSelectToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
         void OnWallToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
         void OnDoorToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -56,10 +56,10 @@ namespace winrt::estimate1::implementation
         void OnSlabToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
         void OnBeamToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-        // Обработчик переключения вкладок видов
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void OnViewTabChanged(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-        // Обработчики событий холста Win2D
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Win2D
         void OnCanvasDraw(
             Microsoft::Graphics::Canvas::UI::Xaml::CanvasControl const& sender,
             Microsoft::Graphics::Canvas::UI::Xaml::CanvasDrawEventArgs const& args);
@@ -88,17 +88,17 @@ namespace winrt::estimate1::implementation
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::SizeChangedEventArgs const& e);
 
-            // Обработчик клавиатуры
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             void OnCanvasKeyDown(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::Input::KeyRoutedEventArgs const& e);
 
-            // Обработчик изменения видимости слоя
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             void OnLayerVisibilityChanged(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            // Свойства выбранной стены
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             void OnWallTypeChanged(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
@@ -115,6 +115,11 @@ namespace winrt::estimate1::implementation
             Windows::Foundation::IInspectable const& sender,
             Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
 
+        // R-WALL: РћР±СЂР°Р±РѕС‚С‡РёРє РёР·РјРµРЅРµРЅРёСЏ СЂРµР¶РёРјР° РїСЂРёРІСЏР·РєРё СЃС‚РµРЅ
+        void OnWallAttachmentModeChanged(
+            Windows::Foundation::IInspectable const& sender,
+            Microsoft::UI::Xaml::RoutedEventArgs const& e);
+
         void OnDimensionLockChanged(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -123,7 +128,7 @@ namespace winrt::estimate1::implementation
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& e);
 
-            // Обработчики меню Вид
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
             void OnDimensionsToggleClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -132,22 +137,22 @@ namespace winrt::estimate1::implementation
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-        // M5: Обработчик импорта DXF
+        // M5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ DXF
             void OnImportDxfClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            // M5.5: Обработчик импорта IFC
+            // M5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ IFC
             void OnImportIfcClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            // M5.6: Обработчик изменения режима привязки
+            // M5.6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             void OnSnapModeChanged(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
 
-            // M6: Обработчики сохранения/загрузки проекта
+            // M6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             void OnNewProjectClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -189,7 +194,7 @@ namespace winrt::estimate1::implementation
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            // M7: Экспорт сметы
+            // M7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             void OnExportEstimateClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -204,14 +209,14 @@ namespace winrt::estimate1::implementation
 
             winrt::Windows::Foundation::IAsyncAction ShowEstimateExportDialogAsync();
 
-            // M8: Экспорт чертежа в PDF
+            // M8: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ PDF
             void OnExportPdfClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
             winrt::Windows::Foundation::IAsyncAction ShowPdfExportDialogAsync();
 
-            // M9.5: Тесты
+            // M9.5: пїЅпїЅпїЅпїЅпїЅ
             void OnRunTestsClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -220,95 +225,99 @@ namespace winrt::estimate1::implementation
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            // M5: Диалог настроек импорта DXF
+            // M5: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ DXF
             winrt::Windows::Foundation::IAsyncAction ShowDxfImportDialogAsync(const std::wstring& filePath);
 
-            // M5.5: Диалог настроек импорта IFC
+            // M5.5: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ IFC
             winrt::Windows::Foundation::IAsyncAction ShowIfcImportDialogAsync(const std::wstring& filePath);
 
         // M5: DXF import (safe entry point that doesn't rely on implementation lifetime after picker)
         winrt::Windows::Foundation::IAsyncAction ShowDxfImportDialogWithXamlRootAsync(const std::wstring& filePath, Microsoft::UI::Xaml::XamlRoot const& xamlRoot);
 
         private:
-        // Обновление визуального состояния кнопок инструментов
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void UpdateToolButtonStates();
 
-        // Перерисовка холста
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         void InvalidateCanvas();
 
-        // Обновление видимости слоёв при смене вида
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         void UpdateLayerVisibility();
 
-        // Синхронизация UI чекбоксов с состоянием слоёв
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UI пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         void SyncLayerCheckboxes();
 
-        // Обновление панели свойств выбранного элемента
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void UpdateSelectedElementUI();
 
-        // Заполнение списка типов стен (M3.1)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (M3.1)
         void RebuildWallTypeCombo();
 
-        // Обработка инструментов
+        // R-WALL: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        void ShowAttachmentModePanel();
+        void HideAttachmentModePanel();
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void HandleToolClick(const WorldPoint& worldPoint);
 
-        // Модель представления
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         estimate1::MainViewModel m_viewModel{ nullptr };
 
-        // Камера для преобразования координат
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Camera m_camera;
 
-        // Рендерер сетки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         GridRenderer m_gridRenderer;
 
-        // Менеджер слоёв
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         LayerManager m_layerManager;
 
-        // Модель документа
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         DocumentModel m_document;
 
-        // Рендерер стен
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         WallRenderer m_wallRenderer;
 
-        // Рендерер размеров (M3.5)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (M3.5)
         DimensionRenderer m_dimensionRenderer;
 
-        // Инструменты
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         WallTool m_wallTool;
         SelectTool m_selectTool;
         DimensionTool m_dimensionTool;
         SnapManager m_snapManager;
 
-        // Авторазмеры (M3.5)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (M3.5)
         AutoDimensionManager m_autoDimensionManager;
 
-        // M4: Соединения стен (старый менеджер)
+        // M4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         WallJoinManager m_wallJoinManager;
 
-        // R2: Новая система соединений с митра-углами
+        // R2: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ
         WallJoinSystem m_wallJoinSystem;
         WallJoinRenderer m_wallJoinRenderer;
-        std::optional<JoinInfo> m_previewJoin;  // Превью соединения при рисовании
+        std::optional<JoinInfo> m_previewJoin;  // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-        // Флаг показа размеров
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         bool m_showDimensions{ true };
 
-        // R4: Инструменты дверей и окон
+        // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
         DoorPlacementTool m_doorTool;
         WindowPlacementTool m_windowTool;
         
-        // R6: Инструменты конструкций
+        // R6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         ColumnTool m_columnTool;
         SlabTool m_slabTool;
         BeamTool m_beamTool;
 
-        // Текущая точка привязки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         SnapResult m_currentSnap;
 
-        // Состояние панорамирования
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         bool m_isPanning{ false };
         ScreenPoint m_lastPointerPosition;
 
-        // Drag размеров (M3.5)
+        // Drag пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (M3.5)
         bool m_isDraggingDimension{ false };
         uint64_t m_dragDimensionId{ 0 };
         DimensionHandle m_dragHandle{ DimensionHandle::None };
@@ -317,46 +326,49 @@ namespace winrt::estimate1::implementation
         double m_dragStartOffset{ 0.0 };
         WorldPoint m_dragStartWorld{ 0, 0 };
 
-        // Hover ручек (M3.5)
+        // Hover пїЅпїЅпїЅпїЅпїЅ (M3.5)
         uint64_t m_hoverDimensionId{ 0 };
         DimensionHandle m_hoverHandle{ DimensionHandle::None };
 
-        // M9: Hover над стенами
+        // M9: Hover пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         uint64_t m_hoverWallId{ 0 };
 
-        // Флаг для предотвращения рекурсии при обновлении чекбоксов
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         bool m_updatingLayerCheckboxes{ false };
 
-        // M5: Менеджер DXF-подложек
+        // M5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ DXF-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         DxfReferenceManager m_dxfManager;
 
-        // M5.5: Менеджер IFC-подложек
+        // M5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ IFC-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             IfcReferenceManager m_ifcManager;
 
-            // M5.6: Система привязки стен
+            // M5.6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             WallSnapSystem m_wallSnapSystem;
             WallSnapCandidate m_currentWallSnap;
 
-            // M6: Данные проекта
+            // R-WALL: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+            WallAttachmentMode m_currentAttachmentMode{ WallAttachmentMode::Core };
+
+            // M6: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             ProjectMetadata m_projectMetadata;
-            std::wstring m_currentFilePath;  // Путь к текущему файлу проекта
+            std::wstring m_currentFilePath;  // пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
             // M9: Undo/Redo
             UndoManager m_undoManager;
 
-            // R4: Инструменты и рендерер дверей/окон
+            // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅ
             OpeningRenderer m_openingRenderer;
-            uint64_t m_hoverOpeningId{ 0 };  // Hover над дверью/окном
+            uint64_t m_hoverOpeningId{ 0 };  // Hover пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ
 
-            // R5.2: Рендерер помещений
+            // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             RoomRenderer m_roomRenderer;
-            uint64_t m_hoverRoomId{ 0 };  // Hover над помещением
+            uint64_t m_hoverRoomId{ 0 };  // Hover пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-            // R2.5: Инструменты редактирования
+            // R2.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             TrimExtendTool m_trimExtendTool;
             SplitTool m_splitTool;
 
-            // M6: Асинхронные операции сохранения/загрузки
+            // M6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             winrt::Windows::Foundation::IAsyncAction SaveProjectAsync(bool saveAs);
             winrt::Windows::Foundation::IAsyncAction OpenProjectAsync();
             winrt::Windows::Foundation::IAsyncAction ConfirmNewProjectAsync();

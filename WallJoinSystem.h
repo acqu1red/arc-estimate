@@ -785,9 +785,6 @@ namespace winrt::estimate1
                 Windows::Foundation::Numerics::float2(joinScreen.X, joinScreen.Y + crossSize),
                 color, 1.5f);
 
-            // Угол между стенами
-            DrawAngleIndicator(session, camera, join);
-
             // Точки митра-угла
             if (!join.CornerPoints.empty())
             {

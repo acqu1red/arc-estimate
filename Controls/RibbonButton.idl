@@ -1,0 +1,20 @@
+namespace estimate1.Controls
+{
+    [default_interface]
+    runtimeclass RibbonButton : Microsoft.UI.Xaml.Controls.UserControl
+    {
+        RibbonButton();
+
+        String Label;
+        String IconSource;
+        String ButtonSize;
+        Microsoft.UI.Xaml.Input.ICommand Command;
+        Boolean IsActive;
+
+        static Microsoft.UI.Xaml.DependencyProperty LabelProperty{ get; };
+        static Microsoft.UI.Xaml.DependencyProperty IconSourceProperty{ get; };
+        static Microsoft.UI.Xaml.DependencyProperty ButtonSizeProperty{ get; };
+        static Microsoft.UI.Xaml.DependencyProperty CommandProperty{ get; };
+        static Microsoft.UI.Xaml.DependencyProperty IsActiveProperty{ get; };
+    }
+}

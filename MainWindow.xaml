@@ -287,6 +287,8 @@
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <!-- R-WALL: Панель привязки стен -->
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -315,8 +317,59 @@
                                              </StackPanel>
                                          </Border>
 
+                <!-- R-WALL: Панель привязки стен (показывается только при выборе инструмента Wall) -->
+                <Border x:Name="WallAttachmentModePanel"
+                        Grid.Row="1"
+                        Visibility="Collapsed"
+                        Background="#F5F5F5"
+                        BorderBrush="#CCCCCC"
+                        BorderThickness="0,1,0,1"
+                        Padding="12,8"
+                        Height="48">
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="Привязка:"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold"
+                                   FontSize="13"/>
+
+                        <!-- Осевая линия (Центр) -->
+                        <RadioButton x:Name="AttachmentModeCore"
+                                     GroupName="WallAttachment"
+                                     IsChecked="True"
+                                     Click="OnWallAttachmentModeChanged"
+                                     VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Rectangle Width="24" Height="3" Fill="#0078D4"/>
+                                <TextBlock Text="Осевая линия" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Чистовая наружная -->
+                        <RadioButton x:Name="AttachmentModeExterior"
+                                     GroupName="WallAttachment"
+                                     Click="OnWallAttachmentModeChanged"
+                                     VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Rectangle Width="24" Height="3" Fill="#00B400"/>
+                                <TextBlock Text="Чистовая наружная" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Чистовая внутренняя -->
+                        <RadioButton x:Name="AttachmentModeInterior"
+                                     GroupName="WallAttachment"
+                                     Click="OnWallAttachmentModeChanged"
+                                     VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Rectangle Width="24" Height="3" Fill="#C80000"/>
+                                <TextBlock Text="Чистовая внутренняя" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </Border>
+
                                          <!-- Холст для рисования Win2D -->
-                                         <Border Grid.Row="1" 
+                                         <Border Grid.Row="2" 
                                                  Background="#FFFAFAFA"
                                                  Margin="0"
                                                  IsTabStop="True"

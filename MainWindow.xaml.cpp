@@ -127,9 +127,13 @@ namespace winrt::estimate1::implementation
     {
         // Отменяем текущее рисование стены
         m_wallTool.Cancel();
-        
+
         m_viewModel.CurrentTool(DrawingTool::Select);
         UpdateToolButtonStates();
+
+        // R-WALL: �������� ������ �������� ��� ������ ������� �����������
+        HideAttachmentModePanel();
+
         InvalidateCanvas();
     }
 
@@ -140,6 +144,9 @@ namespace winrt::estimate1::implementation
     {
         m_viewModel.CurrentTool(DrawingTool::Wall);
         UpdateToolButtonStates();
+
+        // R-WALL: �������� ������ �������� ��� ������ ����������� �����
+        ShowAttachmentModePanel();
     }
 
     // Обработчик клика по инструменту "Дверь"
@@ -149,6 +156,7 @@ namespace winrt::estimate1::implementation
     {
         m_viewModel.CurrentTool(DrawingTool::Door);
         UpdateToolButtonStates();
+        HideAttachmentModePanel();  // R-WALL
     }
 
     // Обработчик клика по инструменту "Окно"
@@ -158,6 +166,7 @@ namespace winrt::estimate1::implementation
     {
         m_viewModel.CurrentTool(DrawingTool::Window);
         UpdateToolButtonStates();
+        HideAttachmentModePanel();  // R-WALL
     }
 
     // Обработчик клика по инструменту "Размер"
@@ -170,6 +179,7 @@ namespace winrt::estimate1::implementation
         
         m_viewModel.CurrentTool(DrawingTool::Dimension);
         UpdateToolButtonStates();
+        HideAttachmentModePanel();  // R-WALL
         InvalidateCanvas();
     }
 
@@ -524,12 +534,6 @@ namespace winrt::estimate1::implementation
                 m_wallJoinRenderer.DrawJoinTypeBadge(session, m_camera, *m_previewJoin);
             }
 
-            // R3: Рисуем угол от горизонтали при рисовании стены
-            WorldPoint startPt = m_wallTool.GetStartPoint();
-            if (startPt.Distance(endPoint) > 50.0)
-            {
-                m_dimensionRenderer.DrawAngleFromHorizontal(session, m_camera, startPt, endPoint);
-            }
         }
 
         // R4: Рисуем превью двери (если инструмент двери активен)
@@ -3848,6 +3852,45 @@ namespace winrt::estimate1::implementation
             co_await dialog.ShowAsync();
         };
         showAsync();
+    }
+
+    // =====================================================
+    // R-WALL: ������ ������ �������� ����
+    // =====================================================
+
+    void MainWindow::ShowAttachmentModePanel()
+    {
+        WallAttachmentModePanel().Visibility(Visibility::Visible);
+    }
+
+    void MainWindow::HideAttachmentModePanel()
+    {
+        WallAttachmentModePanel().Visibility(Visibility::Collapsed);
+    }
+
+    void MainWindow::OnWallAttachmentModeChanged(
+        [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
+        [[maybe_unused]] Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        // ���������� ��������� �����
+        if (AttachmentModeCore().IsChecked().GetBoolean())
+        {
+            m_currentAttachmentMode = WallAttachmentMode::Core;
+        }
+        else if (AttachmentModeExterior().IsChecked().GetBoolean())
+        {
+            m_currentAttachmentMode = WallAttachmentMode::FinishExterior;
+        }
+        else if (AttachmentModeInterior().IsChecked().GetBoolean())
+        {
+            m_currentAttachmentMode = WallAttachmentMode::FinishInterior;
+        }
+
+        // КРИТИЧНО: ��������� ����� � WallTool
+        m_wallTool.SetAttachmentMode(m_currentAttachmentMode);
+
+        // КРИТИЧНО: ������������� canvas ��� ���������� ��������������
+        InvalidateCanvas();
     }
 }
 

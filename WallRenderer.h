@@ -145,18 +145,7 @@ namespace winrt::estimate1
             bool isPreview = false,
             bool isHovered = false)
         {
-            // Получаем цвет для WorkState
-            Windows::UI::Color baseColor = layerManager.GetColorForWorkState(wall.GetWorkState());
-
-            if (isPreview)
-                baseColor.A = 100;
-
-            if (isHovered && !wall.IsSelected())
-            {
-                baseColor.R = static_cast<uint8_t>((std::min)(255, baseColor.R + 40));
-                baseColor.G = static_cast<uint8_t>((std::min)(255, baseColor.G + 40));
-                baseColor.B = static_cast<uint8_t>((std::min)(255, baseColor.B + 40));
-            }
+            Windows::UI::Color baseColor = Windows::UI::Colors::White();
 
             // Если есть соединения с митра-углами, строим сложный контур
             if (m_joinSystem && !joins.empty())
@@ -191,6 +180,7 @@ namespace winrt::estimate1
             bool isPreview,
             bool isSelected)
         {
+            (void)baseColor;
             if (contour.Points.size() < 3)
                 return;
 
@@ -208,23 +198,26 @@ namespace winrt::estimate1
             pathBuilder.EndFigure(Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Closed);
             auto geometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(pathBuilder);
 
-            // Заливка
-            Windows::UI::Color fillColor = baseColor;
-            fillColor.A = static_cast<uint8_t>(isPreview ? 50 : 80);
+            // Заливка (непрозрачный белый)
+            Windows::UI::Color fillColor = Windows::UI::Colors::White();
+            fillColor.A = 255;
             session.FillGeometry(geometry, fillColor);
 
-            // Контур
+            // Контур: чёрный, в превью — серый
             float strokeWidth = isSelected ? 2.5f : 1.5f;
+            Windows::UI::Color strokeColor = isPreview
+                ? Windows::UI::ColorHelper::FromArgb(255, 140, 140, 140)
+                : Windows::UI::Colors::Black();
 
             if (workState == WorkStateNative::Demolish)
             {
                 auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
                 strokeStyle.DashStyle(Microsoft::Graphics::Canvas::Geometry::CanvasDashStyle::Dash);
-                session.DrawGeometry(geometry, baseColor, strokeWidth, strokeStyle);
+                session.DrawGeometry(geometry, strokeColor, strokeWidth, strokeStyle);
             }
             else
             {
-                session.DrawGeometry(geometry, baseColor, strokeWidth);
+                session.DrawGeometry(geometry, strokeColor, strokeWidth);
             }
         }
 
@@ -257,6 +250,8 @@ namespace winrt::estimate1
             bool isPreview = false,
             bool isHovered = false)
         {
+            (void)layerManager;
+            (void)isHovered;
             // Получаем угловые точки стены
             WorldPoint p1, p2, p3, p4;
             wall.GetCornerPoints(p1, p2, p3, p4);
@@ -267,23 +262,13 @@ namespace winrt::estimate1
             ScreenPoint s3 = camera.WorldToScreen(p3);
             ScreenPoint s4 = camera.WorldToScreen(p4);
 
-            // Получаем цвет для WorkState
-            Windows::UI::Color baseColor = layerManager.GetColorForWorkState(wall.GetWorkState());
-            
-            // Для превью делаем полупрозрачным
-            if (isPreview)
-            {
+            // Цвета стены: непрозрачный белый фон и чёрный контур (серый в превью)
+            Windows::UI::Color fillColor = Windows::UI::Colors::White();
+            fillColor.A = 255;
 
-                baseColor.A = 100;
-            }
-            
-            // M9: Для hover подсветка
-            if (isHovered && !wall.IsSelected())
-            {
-                baseColor.R = static_cast<uint8_t>((std::min)(255, baseColor.R + 40));
-                baseColor.G = static_cast<uint8_t>((std::min)(255, baseColor.G + 40));
-                baseColor.B = static_cast<uint8_t>((std::min)(255, baseColor.B + 40));
-            }
+            Windows::UI::Color strokeColor = isPreview
+                ? Windows::UI::ColorHelper::FromArgb(255, 140, 140, 140)
+                : Windows::UI::Colors::Black();
 
             // Создаём путь для заливки
             auto pathBuilder = Microsoft::Graphics::Canvas::Geometry::CanvasPathBuilder(session.Device());
@@ -295,9 +280,7 @@ namespace winrt::estimate1
 
             auto geometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(pathBuilder);
 
-            // Заливка стены
-            Windows::UI::Color fillColor = baseColor;
-            fillColor.A = static_cast<uint8_t>(isPreview ? 50 : 80);
+            // Заливка стены (непрозрачный белый)
             session.FillGeometry(geometry, fillColor);
 
             // Контур стены
@@ -309,11 +292,11 @@ namespace winrt::estimate1
                 // Для демонтажа — пунктирная линия
                 auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
                 strokeStyle.DashStyle(Microsoft::Graphics::Canvas::Geometry::CanvasDashStyle::Dash);
-                session.DrawGeometry(geometry, baseColor, strokeWidth, strokeStyle);
+                session.DrawGeometry(geometry, strokeColor, strokeWidth, strokeStyle);
             }
             else
             {
-                session.DrawGeometry(geometry, baseColor, strokeWidth);
+                session.DrawGeometry(geometry, strokeColor, strokeWidth);
             }
 
             // Если стена выбрана, рисуем маркеры

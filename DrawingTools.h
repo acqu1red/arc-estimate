@@ -1,15 +1,16 @@
 #pragma once
 
 #include "pch.h"
-#include "Element.h"
+#include "Element.h"  // Includes Models.h which defines WallAttachmentMode
 #include "Camera.h"
 #include "Layer.h"
+#include "WallAttachmentSystem.h"  // R-WALL: РџРѕР»РЅРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ РґР»СЏ ToLocationLineMode()
 #include <functional>
 #include <cmath>
 
 namespace winrt::estimate1
 {
-    // Результат привязки (snap)
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (snap)
     struct SnapResult
     {
         bool hasSnap{ false };
@@ -17,13 +18,13 @@ namespace winrt::estimate1
         std::wstring snapType{ L"" }; // "endpoint", "midpoint", "grid", "perpendicular"
     };
 
-    // Менеджер привязок
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     class SnapManager
     {
     public:
         SnapManager() = default;
 
-        // Настройки привязки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void SetGridSnapEnabled(bool enabled) { m_gridSnapEnabled = enabled; }
         bool IsGridSnapEnabled() const { return m_gridSnapEnabled; }
 
@@ -39,7 +40,7 @@ namespace winrt::estimate1
         void SetGridSpacing(double spacing) { m_gridSpacing = spacing; }
         double GetGridSpacing() const { return m_gridSpacing; }
 
-        // Поиск точки привязки
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         SnapResult FindSnap(
             const WorldPoint& cursorWorld,
             const DocumentModel& document,
@@ -49,10 +50,10 @@ namespace winrt::estimate1
             SnapResult result;
             double bestDistance = m_snapTolerance;
 
-            // Преобразуем допуск из пикселей в мировые единицы
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double worldTolerance = m_snapTolerance / camera.GetZoom();
 
-            // 1. Привязка к конечным точкам стен
+            // 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             if (m_endpointSnapEnabled)
             {
                 for (const auto& wall : document.GetWalls())
@@ -60,7 +61,7 @@ namespace winrt::estimate1
                     if (!layerManager.IsWorkStateVisible(wall->GetWorkState()))
                         continue;
 
-                    // Начальная точка
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     double distStart = cursorWorld.Distance(wall->GetStartPoint());
                     if (distStart < worldTolerance && distStart < bestDistance)
                     {
@@ -70,7 +71,7 @@ namespace winrt::estimate1
                         result.snapType = L"endpoint";
                     }
 
-                    // Конечная точка
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     double distEnd = cursorWorld.Distance(wall->GetEndPoint());
                     if (distEnd < worldTolerance && distEnd < bestDistance)
                     {
@@ -82,7 +83,7 @@ namespace winrt::estimate1
                 }
             }
 
-            // 2. Привязка к серединам стен
+            // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             if (m_midpointSnapEnabled && !result.hasSnap)
             {
                 for (const auto& wall : document.GetWalls())
@@ -106,7 +107,7 @@ namespace winrt::estimate1
                 }
             }
 
-            // 3. Привязка к сетке
+            // 3. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
             if (m_gridSnapEnabled && !result.hasSnap)
             {
                 WorldPoint gridPoint = SnapToGrid(cursorWorld);
@@ -123,7 +124,7 @@ namespace winrt::estimate1
             return result;
         }
 
-        // Привязка точки к сетке
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
         WorldPoint SnapToGrid(const WorldPoint& point) const
         {
             return WorldPoint(
@@ -136,49 +137,74 @@ namespace winrt::estimate1
         bool m_gridSnapEnabled{ true };
         bool m_endpointSnapEnabled{ true };
         bool m_midpointSnapEnabled{ true };
-        double m_snapTolerance{ 15.0 };    // Допуск в пикселях
-        double m_gridSpacing{ 100.0 };      // Шаг сетки в мм
+        double m_snapTolerance{ 15.0 };    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        double m_gridSpacing{ 100.0 };      // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ
     };
 
-    // Состояние инструмента рисования стен
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     enum class WallToolState
     {
-        Idle,           // Ожидание первого клика
-        Drawing,        // Рисование (указана начальная точка)
-        ChainDrawing    // Продолжение цепочки стен
+        Idle,           // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        Drawing,        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
+        ChainDrawing    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     };
 
-    // Инструмент рисования стен
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     class WallTool
     {
     public:
         WallTool() = default;
 
-        // Состояние инструмента
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         WallToolState GetState() const { return m_state; }
 
-        // Текущая начальная точка
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         WorldPoint GetStartPoint() const { return m_startPoint; }
 
-        // Текущая толщина стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         double GetThickness() const { return m_thickness; }
         void SetThickness(double thickness) { m_thickness = std::clamp(thickness, 50.0, 1000.0); }
 
-        // Текущий WorkState для новых стен
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ WorkState пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         WorkStateNative GetWorkState() const { return m_workState; }
         void SetWorkState(WorkStateNative state) { m_workState = state; }
 
-        // Текущий LocationLineMode
-        LocationLineMode GetLocationLineMode() const { return m_locationLineMode; }
-        void SetLocationLineMode(LocationLineMode mode) { m_locationLineMode = mode; }
+        // R-WALL: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ WallAttachmentMode (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        WallAttachmentMode GetAttachmentMode() const { return m_attachmentMode; }
+        void SetAttachmentMode(WallAttachmentMode mode) { m_attachmentMode = mode; }
 
-        // Флаг "перевернуть стену" (Spacebar flip)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ LocationLineMode (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        LocationLineMode GetLocationLineMode() const
+        {
+            return WallAttachmentSystem::ToLocationLineMode(m_attachmentMode);
+        }
+        void SetLocationLineMode(LocationLineMode mode)
+        {
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ LocationLineMode пїЅ WallAttachmentMode
+            switch (mode)
+            {
+            case LocationLineMode::WallCenterline:
+            case LocationLineMode::CoreCenterline:
+                m_attachmentMode = WallAttachmentMode::Core;
+                break;
+            case LocationLineMode::FinishFaceExterior:
+            case LocationLineMode::CoreFaceExterior:
+                m_attachmentMode = WallAttachmentMode::FinishExterior;
+                break;
+            case LocationLineMode::FinishFaceInterior:
+            case LocationLineMode::CoreFaceInterior:
+                m_attachmentMode = WallAttachmentMode::FinishInterior;
+                break;
+            }
+        }
+
+        // пїЅпїЅпїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ" (Spacebar flip)
         bool IsFlipped() const { return m_isFlipped; }
         void SetFlipped(bool flipped) { m_isFlipped = flipped; }
         void ToggleFlip() { m_isFlipped = !m_isFlipped; }
 
-        // Обработка клика мыши
-        // Возвращает true, если стена была создана
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ true, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         bool OnClick(
             const WorldPoint& worldPoint,
             DocumentModel& document,
@@ -186,41 +212,44 @@ namespace winrt::estimate1
             const LayerManager& layerManager,
             const Camera& camera)
         {
-            // Применяем привязку
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             SnapResult snap = snapManager.FindSnap(worldPoint, document, layerManager, camera);
             WorldPoint finalPoint = snap.hasSnap ? snap.point : worldPoint;
 
             switch (m_state)
             {
             case WallToolState::Idle:
-                // Начинаем рисование — запоминаем начальную точку
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 m_startPoint = finalPoint;
-                m_isFlipped = false; // Сбрасываем флип при начале новой стены
+                m_isFlipped = false; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 m_state = WallToolState::Drawing;
                 return false;
 
             case WallToolState::Drawing:
             case WallToolState::ChainDrawing:
-                // Завершаем стену
-                if (m_startPoint.Distance(finalPoint) > 10.0) // Минимальная длина 10мм
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+                if (m_startPoint.Distance(finalPoint) > 10.0) // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 10пїЅпїЅ
                 {
-                    // Применяем flip если активен
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ flip пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     WorldPoint effectiveStart = m_startPoint;
                     WorldPoint effectiveEnd = finalPoint;
                     
                     if (m_isFlipped)
                     {
-                        // При flip меняем местами start и end
+                        // пїЅпїЅпїЅ flip пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ start пїЅ end
                         std::swap(effectiveStart, effectiveEnd);
                     }
 
                     Wall* newWall = document.AddWall(effectiveStart, effectiveEnd, m_thickness);
                     newWall->SetWorkState(m_workState);
-                    newWall->SetLocationLineMode(m_locationLineMode);
 
-                    // Продолжаем цепочку — конец текущей стены = начало следующей
+                    // R-WALL: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ WallAttachmentMode
+                    newWall->SetLocationLineMode(
+                        WallAttachmentSystem::ToLocationLineMode(m_attachmentMode));
+
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ = пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     m_startPoint = finalPoint;
-                    m_isFlipped = false; // Сбрасываем flip для следующей стены
+                    m_isFlipped = false; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ flip пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     m_state = WallToolState::ChainDrawing;
 
                     if (m_onWallCreated)
@@ -234,13 +263,13 @@ namespace winrt::estimate1
             return false;
         }
 
-        // Обработка движения мыши (для превью)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
         void OnMouseMove(const WorldPoint& worldPoint)
         {
             m_currentPoint = worldPoint;
         }
 
-        // Отмена текущего рисования
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void Cancel()
         {
             m_state = WallToolState::Idle;
@@ -249,23 +278,23 @@ namespace winrt::estimate1
             m_isFlipped = false;
         }
 
-        // Завершение цепочки (двойной клик или ESC)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ ESC)
         void EndChain()
         {
             m_state = WallToolState::Idle;
             m_isFlipped = false;
         }
 
-        // Проверка, нужно ли рисовать превью
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         bool ShouldDrawPreview() const
         {
             return m_state == WallToolState::Drawing || m_state == WallToolState::ChainDrawing;
         }
 
-        // Получение текущей точки курсора
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         WorldPoint GetCurrentPoint() const { return m_currentPoint; }
 
-        // Получить эффективные точки с учётом flip
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ flip
         void GetEffectivePoints(WorldPoint& outStart, WorldPoint& outEnd) const
         {
             if (m_isFlipped)
@@ -280,7 +309,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Callback при создании стены
+        // Callback пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void SetOnWallCreated(std::function<void(Wall*)> callback)
         {
             m_onWallCreated = callback;
@@ -290,29 +319,32 @@ namespace winrt::estimate1
         WallToolState m_state{ WallToolState::Idle };
         WorldPoint m_startPoint{ 0, 0 };
         WorldPoint m_currentPoint{ 0, 0 };
-        double m_thickness{ 150.0 };
+        double m_thickness{ 200.0 };
         WorkStateNative m_workState{ WorkStateNative::Existing };
-        LocationLineMode m_locationLineMode{ LocationLineMode::WallCenterline };
+
+        // R-WALL: пїЅпїЅпїЅпїЅпїЅ WallAttachmentMode пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ LocationLineMode
+        WallAttachmentMode m_attachmentMode{ WallAttachmentMode::Core };
+
         bool m_isFlipped{ false };
         std::function<void(Wall*)> m_onWallCreated;
     };
 
-    // Инструмент выделения
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     class SelectTool
         {
         public:
             SelectTool() = default;
 
-            // Обработка клика
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             Element* OnClick(
                 const WorldPoint& worldPoint,
                 DocumentModel& document,
                 const LayerManager& layerManager)
             {
-                // Допуск для попадания (в мм)
+                // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅ пїЅпїЅ)
                 double tolerance = 20.0;
 
-                // Ищем элемент под курсором
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 Element* hitElement = document.HitTest(worldPoint, tolerance, layerManager);
 
                 if (hitElement)
@@ -328,14 +360,14 @@ namespace winrt::estimate1
             }
         };
 
-        // Состояние инструмента размеров
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         enum class DimensionToolState
         {
-            Idle,       // Ожидание первого клика (первая точка)
-            Drawing     // Ожидание второго клика (вторая точка)
+            Idle,       // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
+            Drawing     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
         };
 
-        // Инструмент ручного размещения размеров
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         class DimensionTool
         {
         public:
@@ -351,8 +383,8 @@ namespace winrt::estimate1
 
             bool ShouldDrawPreview() const { return m_state == DimensionToolState::Drawing; }
 
-            // Обработка клика
-            // Возвращает true, если размер был создан
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ true, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             bool OnClick(
                 const WorldPoint& worldPoint,
                 DocumentModel& document,
@@ -360,29 +392,29 @@ namespace winrt::estimate1
                 const LayerManager& layerManager,
                 const Camera& camera)
             {
-                // Применяем привязку
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 SnapResult snap = snapManager.FindSnap(worldPoint, document, layerManager, camera);
                 WorldPoint finalPoint = snap.hasSnap ? snap.point : worldPoint;
 
                 switch (m_state)
                 {
                 case DimensionToolState::Idle:
-                    // Начинаем — запоминаем первую точку
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     m_startPoint = finalPoint;
                     m_currentPoint = finalPoint;
                     m_state = DimensionToolState::Drawing;
                     return false;
 
                 case DimensionToolState::Drawing:
-                    // Завершаем размер
-                    if (m_startPoint.Distance(finalPoint) > 10.0) // Минимальная длина 10мм
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+                    if (m_startPoint.Distance(finalPoint) > 10.0) // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 10пїЅпїЅ
                     {
                         Dimension* newDim = document.AddManualDimension(m_startPoint, finalPoint, m_offset);
                     
                         if (m_onDimensionCreated)
                             m_onDimensionCreated(newDim);
 
-                        // Сбрасываем в Idle
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Idle
                         m_state = DimensionToolState::Idle;
                         m_startPoint = WorldPoint(0, 0);
                         m_currentPoint = WorldPoint(0, 0);
@@ -395,13 +427,13 @@ namespace winrt::estimate1
                 return false;
             }
 
-            // Обработка движения мыши
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             void OnMouseMove(const WorldPoint& worldPoint)
             {
                 m_currentPoint = worldPoint;
             }
 
-            // Отмена
+            // пїЅпїЅпїЅпїЅпїЅпїЅ
             void Cancel()
             {
                 m_state = DimensionToolState::Idle;
@@ -409,7 +441,7 @@ namespace winrt::estimate1
                 m_currentPoint = WorldPoint(0, 0);
             }
 
-            // Callback при создании размера
+            // Callback пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             void SetOnDimensionCreated(std::function<void(Dimension*)> callback)
             {
                 m_onDimensionCreated = callback;
