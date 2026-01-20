@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Room.h"
-#include "WallJoinSystem.h"
 #include <unordered_set>
 #include <sstream>
 #include <algorithm>
@@ -18,7 +17,7 @@ namespace winrt::estimate1
             if (walls.size() < 3)
                 return rooms;
 
-            const double mergeTolerance = 5.0; // мм
+            const double mergeTolerance = 5.0; // пїЅпїЅ
 
             struct Node
             {
@@ -37,7 +36,7 @@ namespace winrt::estimate1
                 return static_cast<int>(nodes.size() - 1);
             };
 
-            // Строим граф
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             std::vector<std::vector<int>> adj;
             auto ensureAdjSize = [&](int idx)
             {
@@ -70,7 +69,7 @@ namespace winrt::estimate1
                 nodePoints.push_back(n.pt);
             }
 
-            // Поиск циклов простым DFS
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ DFS
             const int maxDepth = 12;
             std::unordered_set<std::wstring> uniqueCycles;
             std::vector<int> path;
@@ -84,14 +83,14 @@ namespace winrt::estimate1
                 {
                     if (next == start && path.size() >= 3)
                     {
-                        // получили цикл
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                         std::vector<int> cycle = path;
                         AddCycle(cycle, nodePoints, uniqueCycles, rooms);
                         continue;
                     }
 
                     if (std::find(path.begin(), path.end(), next) != path.end())
-                        continue; // избегаем повторов в пути
+                        continue; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
 
                     path.push_back(next);
                     dfs(start, next, depth + 1);
@@ -118,9 +117,9 @@ namespace winrt::estimate1
             if (cycleNodes.size() < 3)
                 return;
 
-            // Каноническое представление для дедупликации
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             std::vector<int> normalized = cycleNodes;
-            // Найдём минимальный индекс
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             auto minIt = std::min_element(normalized.begin(), normalized.end());
             size_t minPos = static_cast<size_t>(std::distance(normalized.begin(), minIt));
 
@@ -150,7 +149,7 @@ namespace winrt::estimate1
 
             uniqueCycles.insert(key);
 
-            // Формируем контур
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             std::vector<WorldPoint> contour;
             contour.reserve(canonicalVec.size());
             for (int idx : canonicalVec)
@@ -158,14 +157,14 @@ namespace winrt::estimate1
                 contour.push_back(points[idx]);
             }
 
-            // Проверяем площадь
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double area = Room::ComputeArea(contour);
-            if (std::abs(area) < 1000.0) // менее 1 кв.м — пропускаем
+            if (std::abs(area) < 1000.0) // пїЅпїЅпїЅпїЅпїЅ 1 пїЅпїЅ.пїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 return;
 
             auto room = std::make_shared<Room>();
             room->SetContour(contour);
-            room->SetName(L"Помещение");
+            room->SetName(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             room->SetNumber(std::to_wstring(rooms.size() + 1));
             rooms.push_back(room);
         }

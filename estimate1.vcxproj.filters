@@ -34,7 +34,6 @@
     <ClInclude Include="Layer.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Models.h" />
-    <ClInclude Include="WallJoinManager.h" />
     <ClInclude Include="WallRenderer.h" />
     <ClInclude Include="WallSnapRenderer.h" />
     <ClInclude Include="WallSnapSystem.h" />
@@ -47,7 +46,6 @@
     <ClInclude Include="ExcelExporter.h" />
     <ClInclude Include="PdfExporter.h" />
     <ClInclude Include="Tests.h" />
-    <ClInclude Include="WallJoinSystem.h" />
     <ClInclude Include="Opening.h" />
     <ClInclude Include="OpeningRenderer.h" />
     <ClInclude Include="OpeningTools.h" />

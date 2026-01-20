@@ -2,7 +2,7 @@
 
 // ============================================================================
 // ARC-Estimate Unit Tests
-// Простой тестовый фреймворк без внешних зависимостей
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // ============================================================================
 
 #include "pch.h"
@@ -13,7 +13,6 @@
 #include "Material.h"
 #include "Dimension.h"
 #include "EstimationEngine.h"
-#include "WallJoinManager.h"
 #include "DrawingTools.h"
 #include <vector>
 #include <string>
@@ -331,11 +330,11 @@ namespace winrt::estimate1::tests
 
         runner.AddTest(L"WallType_CoreThickness", []() {
             WallType type(L"WithFinish");
-            type.AddLayer({ L"Отделка наружная", 15.0 });
-            type.AddLayer({ L"Кирпич", 250.0 });
-            type.AddLayer({ L"Отделка внутренняя", 15.0 });
+            type.AddLayer({ L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 15.0 });
+            type.AddLayer({ L"пїЅпїЅпїЅпїЅпїЅпїЅ", 250.0 });
+            type.AddLayer({ L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 15.0 });
             
-            // Core thickness should exclude "Отдел*" layers
+            // Core thickness should exclude "пїЅпїЅпїЅпїЅпїЅ*" layers
             AssertEqual(type.GetCoreThickness(), 250.0, 0.1, "Core thickness should be 250");
         });
 

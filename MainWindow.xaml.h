@@ -8,10 +8,6 @@
 #include "Element.h"
 #include "WallRenderer.h"
 #include "DrawingTools.h"
-#include "DimensionRenderer.h"
-#include "AutoDimensionManager.h"
-#include "WallJoinManager.h"
-#include "WallJoinSystem.h"
 #include "DxfReference.h"
 #include "DxfReferenceRenderer.h"
 #include "IfcReference.h"
@@ -45,7 +41,6 @@ namespace winrt::estimate1::implementation
         void OnWallToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
         void OnDoorToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
         void OnWindowToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
-        void OnDimensionToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
         // Edit Tools (R2.5)
         void OnTrimExtendToolClick(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& e);
@@ -120,22 +115,15 @@ namespace winrt::estimate1::implementation
             Windows::Foundation::IInspectable const& sender,
             Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-        void OnDimensionLockChanged(
+            void OnGridToggleClick(
                 Windows::Foundation::IInspectable const& sender,
                 Microsoft::UI::Xaml::RoutedEventArgs const& e);
 
-            void OnDimensionOffsetChanged(
+            void OnScaleChanged(
                 Windows::Foundation::IInspectable const& sender,
-                Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& e);
+                Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
 
-            // ����������� ���� ���
-            void OnDimensionsToggleClick(
-                Windows::Foundation::IInspectable const& sender,
-                Microsoft::UI::Xaml::RoutedEventArgs const& e);
-
-            void OnAutoDimensionsToggleClick(
-                Windows::Foundation::IInspectable const& sender,
-                Microsoft::UI::Xaml::RoutedEventArgs const& e);
+            void UpdateScaleUI();
 
         // M5: ���������� ������� DXF
             void OnImportDxfClick(
@@ -278,28 +266,11 @@ namespace winrt::estimate1::implementation
         // �������� ����
         WallRenderer m_wallRenderer;
 
-        // �������� �������� (M3.5)
-        DimensionRenderer m_dimensionRenderer;
-
         // �����������
         WallTool m_wallTool;
         SelectTool m_selectTool;
-        DimensionTool m_dimensionTool;
         SnapManager m_snapManager;
-
-        // ����������� (M3.5)
-        AutoDimensionManager m_autoDimensionManager;
-
-        // M4: ���������� ���� (������ ��������)
-        WallJoinManager m_wallJoinManager;
-
-        // R2: ����� ������� ���������� � �����-������
-        WallJoinSystem m_wallJoinSystem;
-        WallJoinRenderer m_wallJoinRenderer;
-        std::optional<JoinInfo> m_previewJoin;  // ������ ���������� ��� ���������
-
-        // ���� ������ ��������
-        bool m_showDimensions{ true };
+            bool m_showGrid{ false };
 
         // R4: ����������� ������ � ����
         DoorPlacementTool m_doorTool;
@@ -317,24 +288,14 @@ namespace winrt::estimate1::implementation
         bool m_isPanning{ false };
         ScreenPoint m_lastPointerPosition;
 
-        // Drag �������� (M3.5)
-        bool m_isDraggingDimension{ false };
-        uint64_t m_dragDimensionId{ 0 };
-        DimensionHandle m_dragHandle{ DimensionHandle::None };
-        WorldPoint m_dragBaseP1{ 0, 0 };
-        WorldPoint m_dragBaseP2{ 0, 0 };
-        double m_dragStartOffset{ 0.0 };
-        WorldPoint m_dragStartWorld{ 0, 0 };
-
-        // Hover ����� (M3.5)
-        uint64_t m_hoverDimensionId{ 0 };
-        DimensionHandle m_hoverHandle{ DimensionHandle::None };
-
         // M9: Hover ��� �������
         uint64_t m_hoverWallId{ 0 };
 
         // ���� ��� �������������� �������� ��� ���������� ���������
         bool m_updatingLayerCheckboxes{ false };
+
+            // ��������� ������������ ���������� UI
+            bool m_updatingScaleUI{ false };
 
         // M5: �������� DXF-��������
         DxfReferenceManager m_dxfManager;

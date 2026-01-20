@@ -1,7 +1,7 @@
 #pragma once
 
 // ARC-Estimate Project Serialization (M6)
-// Сериализация и десериализация проекта в формате JSON (.arcp)
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ JSON (.arcp)
 
 #include "pch.h"
 #include "json.hpp"
@@ -20,11 +20,11 @@
 
 namespace winrt::estimate1
 {
-    // Версия формата файла проекта
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     constexpr const char* PROJECT_FORMAT_VERSION = "1.0";
     constexpr const wchar_t* PROJECT_FILE_EXTENSION = L".arcp";
 
-    // Результат операции сериализации
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct SerializationResult
     {
         bool Success{ false };
@@ -32,22 +32,22 @@ namespace winrt::estimate1
         std::wstring FilePath;
     };
 
-    // Структура для хранения метаданных проекта
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct ProjectMetadata
     {
-        std::wstring Name{ L"Новый проект" };
+        std::wstring Name{ L"пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ" };
         std::wstring Author;
         std::wstring Description;
         std::wstring CreatedDate;
         std::wstring ModifiedDate;
     };
 
-    // Класс для сериализации/десериализации проекта
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     class ProjectSerializer
     {
     public:
         // =====================================================================
-        // СЕРИАЛИЗАЦИЯ (Save)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Save)
         // =====================================================================
 
         static SerializationResult SaveProject(
@@ -66,67 +66,67 @@ namespace winrt::estimate1
             {
                 nlohmann::json root = nlohmann::json::object();
 
-                // Версия формата
+                // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["version"] = PROJECT_FORMAT_VERSION;
 
-                // Метаданные проекта
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["metadata"] = SerializeMetadata(metadata);
 
-                // Состояние камеры
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 root["camera"] = SerializeCamera(camera);
 
-                // Состояние слоёв
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 root["layers"] = SerializeLayers(layerManager);
 
-                // Каталог материалов
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["materials"] = SerializeMaterials(document.GetMaterials());
 
-                // Каталог типов стен
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 root["wallTypes"] = SerializeWallTypes(document.GetWallTypes());
 
-                // Элементы (стены)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
                 root["elements"] = SerializeElements(document);
 
-                // Размеры
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["dimensions"] = SerializeDimensions(document);
 
-                // R5.2: Помещения (сохраняем пользовательские данные)
+                // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
                 root["rooms"] = SerializeRooms(document);
 
-                // R5.5: Пользовательские зоны
+                // R5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 root["customZones"] = SerializeCustomZones(document);
 
-                // R6.7: Конструкции
+                // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["columns"] = SerializeColumns(document);
                 root["slabs"] = SerializeSlabs(document);
                 root["beams"] = SerializeBeams(document);
 
-                // DXF подложки (если есть)
+                // DXF пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                 if (dxfManager && dxfManager->HasLayers())
                 {
                     root["dxfReferences"] = SerializeDxfReferences(*dxfManager);
                 }
 
-                // IFC подложки (если есть)
+                // IFC пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                 if (ifcManager && ifcManager->HasLayers())
                 {
                     root["ifcReferences"] = SerializeIfcReferences(*ifcManager);
                 }
 
-                // Настройки документа
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 root["settings"] = SerializeSettings(document);
 
-                // Записываем в файл с форматированием
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 std::string jsonStr = root.dump(2);
 
                 std::ofstream file(filePath, std::ios::out | std::ios::binary);
                 if (!file.is_open())
                 {
-                    result.ErrorMessage = L"Не удалось открыть файл для записи: " + filePath;
+                    result.ErrorMessage = L"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: " + filePath;
                     return result;
                 }
 
-                // Записываем UTF-8 BOM для совместимости
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UTF-8 BOM пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 const char bom[] = { '\xEF', '\xBB', '\xBF' };
                 file.write(bom, 3);
                 file.write(jsonStr.c_str(), jsonStr.size());
@@ -136,14 +136,14 @@ namespace winrt::estimate1
             }
             catch (const std::exception& ex)
             {
-                result.ErrorMessage = L"Ошибка сохранения: " + Utf8ToWstring(ex.what());
+                result.ErrorMessage = L"пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + Utf8ToWstring(ex.what());
             }
 
             return result;
         }
 
         // =====================================================================
-        // ДЕСЕРИАЛИЗАЦИЯ (Load)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Load)
         // =====================================================================
 
         static SerializationResult LoadProject(
@@ -160,11 +160,11 @@ namespace winrt::estimate1
 
             try
             {
-                // Читаем файл
+                // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 std::ifstream file(filePath, std::ios::in | std::ios::binary);
                 if (!file.is_open())
                 {
-                    result.ErrorMessage = L"Не удалось открыть файл: " + filePath;
+                    result.ErrorMessage = L"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ: " + filePath;
                     return result;
                 }
 
@@ -173,7 +173,7 @@ namespace winrt::estimate1
                 std::string content = buffer.str();
                 file.close();
 
-                // Пропускаем UTF-8 BOM если есть
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UTF-8 BOM пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 if (content.size() >= 3 &&
                     static_cast<unsigned char>(content[0]) == 0xEF &&
                     static_cast<unsigned char>(content[1]) == 0xBB &&
@@ -182,97 +182,97 @@ namespace winrt::estimate1
                     content = content.substr(3);
                 }
 
-                // Парсим JSON
+                // пїЅпїЅпїЅпїЅпїЅпїЅ JSON
                 nlohmann::json root = nlohmann::json::parse(content);
 
-                // Проверяем версию
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("version"))
                 {
                     std::string version = root["version"].get_string();
-                    // В будущем здесь можно добавить миграцию версий
+                    // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 }
 
-                // Очищаем модель документа
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 outDocument.Clear();
 
-                // Загружаем метаданные
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("metadata"))
                 {
                     DeserializeMetadata(root["metadata"], outMetadata);
                 }
 
-                // Загружаем камеру
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("camera"))
                 {
                     DeserializeCamera(root["camera"], outCamera);
                 }
 
-                // Загружаем слои
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 if (root.contains("layers"))
                 {
                     DeserializeLayers(root["layers"], outLayerManager);
                 }
 
-                // Загружаем материалы (нужны для wallTypes)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ wallTypes)
                 std::map<uint64_t, std::shared_ptr<Material>> materialMap;
                 if (root.contains("materials"))
                 {
                     DeserializeMaterials(root["materials"], outDocument, materialMap);
                 }
 
-                // Загружаем типы стен
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 std::map<std::wstring, std::shared_ptr<WallType>> wallTypeMap;
                 if (root.contains("wallTypes"))
                 {
                     DeserializeWallTypes(root["wallTypes"], outDocument, materialMap, wallTypeMap);
                 }
 
-                // Загружаем элементы (стены)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
                 if (root.contains("elements"))
                 {
                     DeserializeElements(root["elements"], outDocument, wallTypeMap);
                 }
 
-                // Загружаем размеры
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("dimensions"))
                 {
                     DeserializeDimensions(root["dimensions"], outDocument);
                 }
 
-                // Загружаем DXF подложки
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ DXF пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("dxfReferences") && dxfManager)
                 {
                     DeserializeDxfReferences(root["dxfReferences"], *dxfManager);
                 }
 
-                // Загружаем IFC подложки
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ IFC пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("ifcReferences") && ifcManager)
                 {
                     DeserializeIfcReferences(root["ifcReferences"], *ifcManager);
                 }
 
-                // Загружаем настройки
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("settings"))
                 {
                     DeserializeSettings(root["settings"], outDocument);
                 }
 
-                // Пересобираем авторазмеры (включая помещения и зоны)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ)
                 outDocument.RebuildAutoDimensions();
 
-                // R5.2: Загружаем пользовательские данные помещений после пересборки
+                // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("rooms"))
                 {
                     DeserializeRooms(root["rooms"], outDocument);
                 }
 
-                // R5.5: Загружаем пользовательские зоны
+                // R5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 if (root.contains("customZones"))
                 {
                     DeserializeCustomZones(root["customZones"], outDocument);
                 }
 
-                // R6.7: Конструкции
+                // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (root.contains("columns"))
                 {
                     DeserializeColumns(root["columns"], outDocument);
@@ -290,7 +290,7 @@ namespace winrt::estimate1
             }
             catch (const std::exception& ex)
             {
-                result.ErrorMessage = L"Ошибка загрузки: " + Utf8ToWstring(ex.what());
+                result.ErrorMessage = L"пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + Utf8ToWstring(ex.what());
             }
 
             return result;
@@ -298,7 +298,7 @@ namespace winrt::estimate1
 
     private:
         // =====================================================================
-        // СЕРИАЛИЗАЦИЯ КОМПОНЕНТОВ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
         static nlohmann::json SerializeMetadata(const ProjectMetadata& metadata)
@@ -396,7 +396,7 @@ namespace winrt::estimate1
         {
             nlohmann::json elements = nlohmann::json::object();
             
-            // Сериализуем стены
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             nlohmann::json wallsArr = nlohmann::json::array();
             for (const auto& wall : document.GetWalls())
             {
@@ -431,7 +431,7 @@ namespace winrt::estimate1
         {
             nlohmann::json dims = nlohmann::json::object();
             
-            // Ручные размеры
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             nlohmann::json manualArr = nlohmann::json::array();
             for (const auto& dim : document.GetManualDimensions())
             {
@@ -440,7 +440,7 @@ namespace winrt::estimate1
             }
             dims["manual"] = manualArr;
             
-            // Авторазмеры - сохраняем только состояния locked и offsets
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ locked пїЅ offsets
             nlohmann::json autoStatesArr = nlohmann::json::array();
             for (const auto& dim : document.GetDimensions())
             {
@@ -516,21 +516,10 @@ namespace winrt::estimate1
             nlohmann::json j = nlohmann::json::object();
             j["autoDimensionsEnabled"] = document.IsAutoDimensionsEnabled();
 
-            // R2.6: Join settings
-            const auto& join = document.GetJoinSettings();
-            nlohmann::json jJoin = nlohmann::json::object();
-            jJoin["autoJoinEnabled"] = join.AutoJoinEnabled;
-            jJoin["joinTolerance"] = join.JoinTolerance;
-            jJoin["defaultStyle"] = static_cast<int>(join.DefaultStyle);
-            jJoin["showJoinPreview"] = join.ShowJoinPreview;
-            jJoin["extendToMeet"] = join.ExtendToMeet;
-            j["joinSettings"] = jJoin;
-
-
             return j;
         }
 
-        // R5.2: Сериализация помещений (пользовательские данные)
+        // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
         static nlohmann::json SerializeRooms(const DocumentModel& document)
         {
             nlohmann::json arr = nlohmann::json::array();
@@ -541,28 +530,28 @@ namespace winrt::estimate1
                 
                 nlohmann::json j = nlohmann::json::object();
                 
-                // Идентификация (сохраняем центроид для сопоставления при загрузке)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                 WorldPoint centroid = room->GetLabelPoint();
                 j["centroidX"] = centroid.X;
                 j["centroidY"] = centroid.Y;
                 
-                // Пользовательские данные
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 j["number"] = room->GetNumber();
                 j["name"] = room->GetName();
                 j["category"] = static_cast<int>(room->GetCategory());
                 j["ceilingHeight"] = room->GetCeilingHeight();
                 j["floorLevel"] = room->GetFloorLevel();
                 
-                // Отделка
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 j["finishType"] = room->GetFinishType();
                 j["floorFinish"] = room->GetFloorFinish();
                 j["ceilingFinish"] = room->GetCeilingFinish();
                 j["wallFinish"] = room->GetWallFinish();
                 
-                // Позиция метки (если переопределена)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                 WorldPoint labelPos = room->GetLabelPoint();
                 WorldPoint roomCentroid = room->GetLabelPoint();
-                // Сохраняем только если метка перемещена пользователем
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (labelPos.X != roomCentroid.X || labelPos.Y != roomCentroid.Y)
                 {
                     j["labelX"] = labelPos.X;
@@ -575,7 +564,7 @@ namespace winrt::estimate1
             return arr;
         }
 
-        // R5.5: Сериализация пользовательских зон
+        // R5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
         static nlohmann::json SerializeCustomZones(const DocumentModel& document)
         {
             nlohmann::json arr = nlohmann::json::array();
@@ -591,7 +580,7 @@ namespace winrt::estimate1
                 j["type"] = static_cast<int>(zone->GetType());
                 j["color"] = SerializeColor(zone->GetColor());
                 
-                // Сохраняем ID помещений в зоне
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
                 nlohmann::json roomIds = nlohmann::json::array();
                 for (uint64_t roomId : zone->GetRoomIds())
                 {
@@ -605,7 +594,7 @@ namespace winrt::estimate1
             return arr;
         }
 
-        // R6.7: Сериализация колонн
+        // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         static nlohmann::json SerializeColumns(const DocumentModel& document)
         {
             nlohmann::json arr = nlohmann::json::array();
@@ -630,7 +619,7 @@ namespace winrt::estimate1
             return arr;
         }
 
-        // R6.7: Сериализация перекрытий
+        // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static nlohmann::json SerializeSlabs(const DocumentModel& document)
         {
             nlohmann::json arr = nlohmann::json::array();
@@ -658,7 +647,7 @@ namespace winrt::estimate1
             return arr;
         }
 
-        // R6.5: Сериализация балок
+        // R6.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         static nlohmann::json SerializeBeams(const DocumentModel& document)
         {
             nlohmann::json arr = nlohmann::json::array();
@@ -685,7 +674,7 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // ДЕСЕРИАЛИЗАЦИЯ КОМПОНЕНТОВ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
         static void DeserializeMetadata(const nlohmann::json& j, ProjectMetadata& metadata)
@@ -747,7 +736,7 @@ namespace winrt::estimate1
         {
             if (!arr.is_array()) return;
             
-            // Используем существующие материалы из документа
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             const auto& existingMaterials = document.GetMaterials();
             for (const auto& mat : existingMaterials)
             {
@@ -755,13 +744,13 @@ namespace winrt::estimate1
                     materialMap[mat->Id] = mat;
             }
             
-            // Обновляем свойства из файла
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             for (const auto& j : arr)
             {
                 uint64_t id = j.contains("id") ? j["id"].get_uint64() : 0;
                 std::wstring name = j.contains("name") ? j["name"].get_wstring() : L"";
                 
-                // Ищем по имени среди существующих
+                // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 std::shared_ptr<Material> mat = nullptr;
                 for (const auto& m : existingMaterials)
                 {
@@ -775,7 +764,7 @@ namespace winrt::estimate1
                 if (mat && id > 0)
                 {
                     materialMap[id] = mat;
-                    // Обновляем свойства
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (j.contains("costPerSquareMeter"))
                         mat->CostPerSquareMeter = j["costPerSquareMeter"].get_double();
                     if (j.contains("color"))
@@ -792,7 +781,7 @@ namespace winrt::estimate1
         {
             if (!arr.is_array()) return;
             
-            // Используем существующие типы стен
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             for (const auto& wt : document.GetWallTypes())
             {
                 if (wt)
@@ -835,7 +824,7 @@ namespace winrt::estimate1
                     if (j.contains("allowJoinEnd"))
                         wall->SetJoinAllowedAtEnd(j["allowJoinEnd"].get_bool());
                     
-                    // Связываем с типом стены по имени
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     if (j.contains("wallTypeName"))
                     {
                         std::wstring typeName = j["wallTypeName"].get_wstring();
@@ -851,7 +840,7 @@ namespace winrt::estimate1
 
         static void DeserializeDimensions(const nlohmann::json& dims, DocumentModel& document)
         {
-            // Загружаем ручные размеры
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (dims.contains("manual") && dims["manual"].is_array())
             {
                 for (const auto& j : dims["manual"])
@@ -877,7 +866,7 @@ namespace winrt::estimate1
                 }
             }
             
-            // Авторазмеры: сохраняем только состояния offset/lock на стену
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ offset/lock пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             if (dims.contains("autoStates") && dims["autoStates"].is_array())
             {
                 for (const auto& j : dims["autoStates"]) 
@@ -901,11 +890,11 @@ namespace winrt::estimate1
                 
                 std::wstring filePath = j["filePath"].get_wstring();
                 
-                // Проверяем существование файла
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (!std::filesystem::exists(filePath))
                     continue;
                 
-                // Импортируем DXF файл
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ DXF пїЅпїЅпїЅпїЅ
                 DxfImportSettings settings;
                 if (j.contains("scale"))
                     settings.Scale = j["scale"].get_double();
@@ -939,11 +928,11 @@ namespace winrt::estimate1
                 
                 std::wstring filePath = j["filePath"].get_wstring();
                 
-                // Проверяем существование файла
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (!std::filesystem::exists(filePath))
                     continue;
                 
-                // Импортируем IFC файл
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ IFC пїЅпїЅпїЅпїЅ
                 IfcImportSettings settings;
                 if (j.contains("scale"))
                     settings.Scale = j["scale"].get_double();
@@ -974,27 +963,15 @@ namespace winrt::estimate1
                 document.SetAutoDimensionsEnabled(j["autoDimensionsEnabled"].get_bool());
             }
 
-            // R2.6: Join settings
-            if (j.contains("joinSettings"))
-            {
-                const auto& js = j["joinSettings"];
-                JoinSettings settings = document.GetJoinSettings();
-                if (js.contains("autoJoinEnabled")) settings.AutoJoinEnabled = js["autoJoinEnabled"].get_bool();
-                if (js.contains("joinTolerance")) settings.JoinTolerance = js["joinTolerance"].get_double();
-                if (js.contains("defaultStyle")) settings.DefaultStyle = static_cast<JoinStyle>(js["defaultStyle"].get_int());
-                if (js.contains("showJoinPreview")) settings.ShowJoinPreview = js["showJoinPreview"].get_bool();
-                if (js.contains("extendToMeet")) settings.ExtendToMeet = js["extendToMeet"].get_bool();
-                document.SetJoinSettings(settings);
-            }
         }
 
-        // R5.2: Десериализация помещений (применяем пользовательские данные к автодетектированным)
+        // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         static void DeserializeRooms(const nlohmann::json& arr, DocumentModel& document)
         {
             if (!arr.is_array()) return;
             
             const auto& rooms = document.GetRooms();
-            const double matchTolerance = 500.0; // 500 мм для сопоставления центроидов
+            const double matchTolerance = 500.0; // 500 пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             
             for (const auto& j : arr)
             {
@@ -1005,7 +982,7 @@ namespace winrt::estimate1
                 double savedCentroidY = j["centroidY"].get_double();
                 WorldPoint savedCentroid{ savedCentroidX, savedCentroidY };
                 
-                // Ищем ближайшее помещение по центроиду
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 Room* bestMatch = nullptr;
                 double bestDist = matchTolerance;
                 
@@ -1024,7 +1001,7 @@ namespace winrt::estimate1
                 if (!bestMatch)
                     continue;
                 
-                // Применяем сохранённые данные
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 if (j.contains("number"))
                     bestMatch->SetNumber(j["number"].get_wstring());
                 if (j.contains("name"))
@@ -1036,7 +1013,7 @@ namespace winrt::estimate1
                 if (j.contains("floorLevel"))
                     bestMatch->SetFloorLevel(j["floorLevel"].get_double());
                 
-                // Отделка
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (j.contains("finishType"))
                     bestMatch->SetFinishType(j["finishType"].get_wstring());
                 if (j.contains("floorFinish"))
@@ -1046,7 +1023,7 @@ namespace winrt::estimate1
                 if (j.contains("wallFinish"))
                     bestMatch->SetWallFinish(j["wallFinish"].get_wstring());
                 
-                // Позиция метки
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (j.contains("labelX") && j.contains("labelY"))
                 {
                     bestMatch->SetLabelPosition(WorldPoint{
@@ -1057,7 +1034,7 @@ namespace winrt::estimate1
             }
         }
 
-        // R5.5: Десериализация пользовательских зон
+        // R5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
         static void DeserializeCustomZones(const nlohmann::json& arr, DocumentModel& document)
         {
             if (!arr.is_array()) return;
@@ -1081,7 +1058,7 @@ namespace winrt::estimate1
                 if (j.contains("color"))
                     zone->SetColor(DeserializeColor(j["color"]));
                 
-                // Восстанавливаем связи с помещениями
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (j.contains("roomIds") && j["roomIds"].is_array())
                 {
                     for (const auto& idVal : j["roomIds"])
@@ -1089,13 +1066,13 @@ namespace winrt::estimate1
                         uint64_t roomId = idVal.get_uint64();
                         zone->AddRoomById(roomId);
                     }
-                    // Обновляем кэш помещений
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     zone->UpdateRoomCache(document.GetRooms());
                 }
             }
         }
 
-        // R6.7: Десериализация колонн
+        // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         static void DeserializeColumns(const nlohmann::json& arr, DocumentModel& document)
         {
             if (!arr.is_array()) return;
@@ -1127,7 +1104,7 @@ namespace winrt::estimate1
             }
         }
 
-        // R6.7: Десериализация перекрытий
+        // R6.7: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static void DeserializeSlabs(const nlohmann::json& arr, DocumentModel& document)
         {
              if (!arr.is_array()) return;
@@ -1153,7 +1130,7 @@ namespace winrt::estimate1
              }
         }
 
-        // R6.5: Десериализация балок
+        // R6.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         static void DeserializeBeams(const nlohmann::json& arr, DocumentModel& document)
         {
              if (!arr.is_array()) return;
@@ -1177,7 +1154,7 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
         static std::wstring Utf8ToWstring(const std::string& utf8)

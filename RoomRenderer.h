@@ -1,23 +1,24 @@
 #pragma once
 
-// R5.2 — Рендерер помещений (Room Renderer)
-// Визуализация помещений: заливка, границы, метки с названием и площадью
+// R5.2 – Рендер помещений (Room Renderer)
+// Отображение помещений: границы, заливка, подписи и площади на плане
 
 #include "pch.h"
 #include "Room.h"
 #include "Camera.h"
 #include "Element.h"
 #include <cmath>
+#include <vector>
 
 namespace winrt::estimate1
 {
-    // Типы заливки помещений
+    // Тип заливки помещения
     enum class RoomFillStyle
     {
-        Solid,          // Сплошная заливка
-        Hatched,        // Штриховка
-        ColorByType,    // Цвет по типу помещения
-        None            // Без заливки
+        Solid,          // сплошная заливка
+        Hatched,        // штриховка (резерв)
+        ColorByType,    // цвет по типу помещения
+        None            // без заливки
     };
 
     // Настройки отображения помещений
@@ -28,110 +29,86 @@ namespace winrt::estimate1
         bool ShowArea{ true };
         bool ShowPerimeter{ false };
         RoomFillStyle FillStyle{ RoomFillStyle::Solid };
-        uint8_t FillOpacity{ 40 };
+        uint8_t FillOpacity{ 40 }; // 0-100, процент
         float BorderWidth{ 1.5f };
-        bool HighlightSelected{ true };
     };
 
-    // Класс для отрисовки помещений на холсте Win2D
+    // Рендерер для отображения помещений на холсте Win2D
     class RoomRenderer
     {
     public:
         RoomRenderer() = default;
 
-        // Настройки отображения
-        void SetDisplaySettings(const RoomDisplaySettings& settings) { m_settings = settings; }
-        const RoomDisplaySettings& GetDisplaySettings() const { return m_settings; }
+        void Settings(const RoomDisplaySettings& settings)
+        {
+            m_settings = settings;
+        }
 
-        // Отрисовка всех помещений
+        const RoomDisplaySettings& Settings() const
+        {
+            return m_settings;
+        }
+
         void Draw(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
-            const DocumentModel& document,
-            uint64_t hoverRoomId = 0)
+            const std::vector<std::shared_ptr<Room>>& rooms)
         {
             if (!m_settings.ShowRooms)
                 return;
 
-            const auto& rooms = document.GetRooms();
-            
             for (const auto& room : rooms)
             {
-                if (!room)
-                    continue;
-
-                bool isHovered = (hoverRoomId != 0 && room->GetId() == hoverRoomId);
-                DrawRoom(session, camera, *room, isHovered);
+                if (room)
+                {
+                    DrawRoom(session, camera, *room);
+                }
             }
         }
 
-        // Отрисовка одного помещения
+    private:
         void DrawRoom(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
-            const Room& room,
-            bool isHovered = false)
+            const Room& room)
         {
             const auto& contour = room.GetContour();
             if (contour.size() < 3)
                 return;
 
-            // Получаем цвет на основе типа помещения
-            Windows::UI::Color roomColor = GetRoomColor(room);
-
-            // Hover эффект
-            if (isHovered && !room.IsSelected())
-            {
-                roomColor.R = static_cast<uint8_t>((std::min)(255, roomColor.R + 30));
-                roomColor.G = static_cast<uint8_t>((std::min)(255, roomColor.G + 30));
-                roomColor.B = static_cast<uint8_t>((std::min)(255, roomColor.B + 30));
-            }
-
-            // Создаём путь для контура
-            auto pathBuilder = Microsoft::Graphics::Canvas::Geometry::CanvasPathBuilder(session.Device());
-
-            ScreenPoint first = camera.WorldToScreen(contour[0]);
-            pathBuilder.BeginFigure(Windows::Foundation::Numerics::float2(first.X, first.Y));
-
+            auto builder = Microsoft::Graphics::Canvas::Geometry::CanvasPathBuilder(session.Device());
+            ScreenPoint start = camera.WorldToScreen(contour.front());
+            builder.BeginFigure(start.X, start.Y);
             for (size_t i = 1; i < contour.size(); ++i)
             {
-                ScreenPoint screen = camera.WorldToScreen(contour[i]);
-                pathBuilder.AddLine(Windows::Foundation::Numerics::float2(screen.X, screen.Y));
+                ScreenPoint pt = camera.WorldToScreen(contour[i]);
+                builder.AddLine(pt.X, pt.Y);
             }
+            builder.EndFigure(Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Closed);
 
-            pathBuilder.EndFigure(Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Closed);
-            auto geometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(pathBuilder);
+            auto geometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(builder);
 
             // Заливка
             if (m_settings.FillStyle != RoomFillStyle::None)
             {
-                Windows::UI::Color fillColor = roomColor;
-                fillColor.A = m_settings.FillOpacity;
-                
-                if (room.IsSelected())
-                    fillColor.A = static_cast<uint8_t>((std::min)(255, fillColor.A + 30));
-
+                Windows::UI::Color fillColor = GetRoomColor(room);
+                uint8_t opacity = (m_settings.FillOpacity > 100 ? 100 : m_settings.FillOpacity);
+                fillColor.A = static_cast<uint8_t>(opacity * 255 / 100);
                 session.FillGeometry(geometry, fillColor);
             }
 
-            // Граница
-            float borderWidth = m_settings.BorderWidth;
-            if (room.IsSelected())
-                borderWidth += 1.0f;
+            // Контур
+            session.DrawGeometry(
+                geometry,
+                Windows::UI::ColorHelper::FromArgb(255, 80, 80, 80),
+                m_settings.BorderWidth);
 
-            Windows::UI::Color borderColor = roomColor;
-            borderColor.A = 180;
-            
-            session.DrawGeometry(geometry, borderColor, borderWidth);
-
-            // Метка помещения
             if (m_settings.ShowLabels)
             {
                 DrawRoomLabel(session, camera, room);
             }
         }
 
-        // Отрисовка метки помещения
         void DrawRoomLabel(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -140,16 +117,13 @@ namespace winrt::estimate1
             WorldPoint labelPoint = room.GetLabelPoint();
             ScreenPoint screenPos = camera.WorldToScreen(labelPoint);
 
-            // Формируем текст метки
             std::wstring labelText;
 
-            // Номер помещения
             if (!room.GetNumber().empty())
             {
                 labelText = room.GetNumber();
             }
 
-            // Название помещения
             if (!room.GetName().empty())
             {
                 if (!labelText.empty())
@@ -157,25 +131,23 @@ namespace winrt::estimate1
                 labelText += room.GetName();
             }
 
-            // Площадь
             if (m_settings.ShowArea)
             {
-                double areaSqM = std::abs(room.GetArea()) / 1000000.0; // мм? -> м?
+                double areaSqM = std::abs(room.GetArea()) / 1000000.0;
                 wchar_t areaStr[64];
                 swprintf_s(areaStr, L"%.2f м?", areaSqM);
-                
+
                 if (!labelText.empty())
                     labelText += L"\n";
                 labelText += areaStr;
             }
 
-            // Периметр
             if (m_settings.ShowPerimeter)
             {
-                double perimeterM = room.GetPerimeter() / 1000.0; // мм -> м
+                double perimeterM = room.GetPerimeter() / 1000.0;
                 wchar_t perimStr[64];
                 swprintf_s(perimStr, L"P: %.2f м", perimeterM);
-                
+
                 if (!labelText.empty())
                     labelText += L"\n";
                 labelText += perimStr;
@@ -184,49 +156,25 @@ namespace winrt::estimate1
             if (labelText.empty())
                 return;
 
-            // Создаём формат текста
             auto textFormat = Microsoft::Graphics::Canvas::Text::CanvasTextFormat();
             textFormat.FontFamily(L"Segoe UI");
             textFormat.FontSize(12.0f);
             textFormat.HorizontalAlignment(Microsoft::Graphics::Canvas::Text::CanvasHorizontalAlignment::Center);
             textFormat.VerticalAlignment(Microsoft::Graphics::Canvas::Text::CanvasVerticalAlignment::Center);
 
-            // Измеряем размер текста
             auto textLayout = Microsoft::Graphics::Canvas::Text::CanvasTextLayout(
                 session.Device(),
                 labelText,
                 textFormat,
-                300.0f,  // max width
-                200.0f   // max height
-            );
+                300.0f,
+                200.0f);
 
             float textWidth = textLayout.LayoutBounds().Width;
             float textHeight = textLayout.LayoutBounds().Height;
 
-            // Позиция текста (центрирование)
             float textX = screenPos.X - textWidth / 2.0f;
             float textY = screenPos.Y - textHeight / 2.0f;
 
-            // Фон метки (полупрозрачный)
-            float padding = 4.0f;
-            Windows::Foundation::Rect bgRect{
-                textX - padding,
-                textY - padding,
-                textWidth + padding * 2,
-                textHeight + padding * 2
-            };
-
-            Windows::UI::Color bgColor = Windows::UI::ColorHelper::FromArgb(200, 255, 255, 255);
-            if (room.IsSelected())
-                bgColor = Windows::UI::ColorHelper::FromArgb(220, 255, 255, 200);
-
-            session.FillRoundedRectangle(bgRect, 3.0f, 3.0f, bgColor);
-
-            // Рамка метки
-            Windows::UI::Color frameBorderColor = Windows::UI::ColorHelper::FromArgb(180, 100, 100, 100);
-            session.DrawRoundedRectangle(bgRect, 3.0f, 3.0f, frameBorderColor, 0.5f);
-
-            // Текст метки
             Windows::UI::Color textColor = Windows::UI::ColorHelper::FromArgb(255, 40, 40, 40);
             session.DrawTextLayout(
                 textLayout,
@@ -234,49 +182,36 @@ namespace winrt::estimate1
                 textColor);
         }
 
-    private:
-        RoomDisplaySettings m_settings;
-
-        // Получение цвета помещения на основе типа отделки / имени
         Windows::UI::Color GetRoomColor(const Room& room)
         {
-            // Цвета по типу помещения
             const std::wstring& name = room.GetName();
             const std::wstring& finishType = room.GetFinishType();
+            (void)finishType;
 
-            // Определяем категорию помещения по названию
-            if (ContainsAny(name, { L"кухня", L"Кухня" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 255, 200, 150); // Оранжевый
+            if (ContainsAny(name, { L"ванн", L"сануз" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 255, 200, 150);
 
-            if (ContainsAny(name, { L"ванная", L"Ванная", L"санузел", L"Санузел", L"туалет", L"Туалет", L"душ", L"Душ" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 150, 200, 255); // Голубой
+            if (ContainsAny(name, { L"кух", L"стол", L"пита", L"обед" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 150, 200, 255);
 
-            if (ContainsAny(name, { L"спальня", L"Спальня" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 200, 180, 220); // Лавандовый
+            if (ContainsAny(name, { L"детск", L"спальн" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 200, 180, 220);
 
-            if (ContainsAny(name, { L"гостиная", L"Гостиная", L"зал", L"Зал" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 180, 220, 180); // Зелёный
+            if (ContainsAny(name, { L"кладов", L"гардер" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 180, 220, 180);
 
-            if (ContainsAny(name, { L"прихожая", L"Прихожая", L"холл", L"Холл", L"коридор", L"Коридор" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 220, 220, 180); // Бежевый
+            if (ContainsAny(name, { L"коридор", L"холл", L"прихож" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 220, 220, 180);
 
-            if (ContainsAny(name, { L"кладов", L"Кладов", L"гардероб", L"Гардероб" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 200, 200, 200); // Серый
+            if (ContainsAny(name, { L"балкон", L"лодж" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 200, 200, 200);
 
-            if (ContainsAny(name, { L"балкон", L"Балкон", L"лоджия", L"Лоджия", L"терраса", L"Терраса" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 180, 230, 200); // Мятный
+            if (ContainsAny(name, { L"офис", L"кабинет" }))
+                return Windows::UI::ColorHelper::FromArgb(255, 200, 200, 230);
 
-            if (ContainsAny(name, { L"кабинет", L"Кабинет", L"офис", L"Офис" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 200, 200, 230); // Сиреневый
-
-            if (ContainsAny(name, { L"детская", L"Детская" }))
-                return Windows::UI::ColorHelper::FromArgb(255, 255, 220, 200); // Персиковый
-
-            // Цвет по умолчанию
-            return Windows::UI::ColorHelper::FromArgb(255, 200, 220, 200); // Светло-зелёный
+            return Windows::UI::ColorHelper::FromArgb(255, 200, 220, 200);
         }
 
-        // Проверка, содержит ли строка любую из подстрок
         bool ContainsAny(const std::wstring& str, std::initializer_list<const wchar_t*> substrings)
         {
             for (const auto& sub : substrings)
@@ -286,5 +221,7 @@ namespace winrt::estimate1
             }
             return false;
         }
+
+        RoomDisplaySettings m_settings;
     };
 }

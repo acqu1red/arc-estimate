@@ -8,6 +8,7 @@
 #include <winrt/Windows.Storage.h>
 #include <Shobjidl.h>
 #include <microsoft.ui.xaml.window.h>
+#include <cmath>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -24,6 +25,14 @@ namespace winrt::estimate1::implementation
         
         // Инициализация компонентов XAML
         InitializeComponent();
+
+        // Тёмная тема: белая сетка
+        m_gridRenderer.SetGridColors(
+            Windows::UI::ColorHelper::FromArgb(90, 255, 255, 255),
+            Windows::UI::ColorHelper::FromArgb(140, 255, 255, 255),
+            Windows::UI::ColorHelper::FromArgb(180, 120, 170, 255));
+
+        UpdateScaleUI();
         
         // Обновляем состояние кнопок инструментов
         UpdateToolButtonStates();
@@ -33,28 +42,10 @@ namespace winrt::estimate1::implementation
             InvalidateCanvas();
         });
 
-        // R2: Связываем систему соединений с рендерером стен
-        m_wallRenderer.SetJoinSystem(&m_wallJoinSystem);
-        // Применяем настройки соединений из документа
-        m_wallJoinSystem.SetSettings(m_document.GetJoinSettings());
-
         // Настраиваем WallTool для обновления UI при создании стены
             m_wallTool.SetOnWallCreated([this](Wall* wall) {
-                // R2: Используем новую систему соединений
-                if (wall)
-                {
-                    m_wallJoinSystem.ProcessNewWall(*wall, const_cast<std::vector<std::unique_ptr<Wall>>&>(m_document.GetWalls()));
-                }
-            
+                (void)wall;
                 m_viewModel.HasUnsavedChanges(true);
-                UpdateSelectedElementUI();
-                InvalidateCanvas();
-            });
-
-            // Настраиваем DimensionTool для обновления UI при создании размера
-            m_dimensionTool.SetOnDimensionCreated([this](Dimension* dim) {
-                m_viewModel.HasUnsavedChanges(true);
-                m_document.SetSelectedElement(dim);
                 UpdateSelectedElementUI();
                 InvalidateCanvas();
             });
@@ -64,9 +55,6 @@ namespace winrt::estimate1::implementation
 
             // M3.1: загружаем каталог типов стен в UI
             RebuildWallTypeCombo();
-
-            // M3.5: первичная генерация авторазмеров
-            m_autoDimensionManager.Rebuild(m_document);
 
             // M5.6: Подписываемся на событие изменения режима привязки
             // (делаем это после InitializeComponent чтобы избежать вызова до инициализации)
@@ -169,20 +157,6 @@ namespace winrt::estimate1::implementation
         HideAttachmentModePanel();  // R-WALL
     }
 
-    // Обработчик клика по инструменту "Размер"
-    void MainWindow::OnDimensionToolClick(
-        [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
-        [[maybe_unused]] Microsoft::UI::Xaml::RoutedEventArgs const& e)
-    {
-        // Отменяем текущее рисование стены
-        m_wallTool.Cancel();
-        
-        m_viewModel.CurrentTool(DrawingTool::Dimension);
-        UpdateToolButtonStates();
-        HideAttachmentModePanel();  // R-WALL
-        InvalidateCanvas();
-    }
-
     // R2.5: Trim/Extend Tool
     void MainWindow::OnTrimExtendToolClick(
         [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
@@ -238,21 +212,92 @@ namespace winrt::estimate1::implementation
     }
 
     // Обработчики меню Вид
-    void MainWindow::OnDimensionsToggleClick(
+    void MainWindow::OnGridToggleClick(
         [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
         [[maybe_unused]] Microsoft::UI::Xaml::RoutedEventArgs const& e)
     {
-        m_showDimensions = DimensionsToggle().IsChecked();
-        InvalidateCanvas();
+        if (GridToggle())
+        {
+            m_showGrid = GridToggle().IsChecked().Value();
+            InvalidateCanvas();
+        }
     }
 
-    void MainWindow::OnAutoDimensionsToggleClick(
+    void MainWindow::OnScaleChanged(
         [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
-        [[maybe_unused]] Microsoft::UI::Xaml::RoutedEventArgs const& e)
+        [[maybe_unused]] Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e)
     {
-        bool enabled = AutoDimensionsToggle().IsChecked();
-        m_document.SetAutoDimensionsEnabled(enabled);
-        InvalidateCanvas();
+        if (m_updatingScaleUI || !ScaleComboBox())
+            return;
+
+        auto item = ScaleComboBox().SelectedItem().try_as<Microsoft::UI::Xaml::Controls::ComboBoxItem>();
+        if (!item)
+            return;
+
+        auto label = unbox_value<hstring>(item.Content());
+        if (!label.empty())
+        {
+            double zoom = m_camera.GetZoom();
+
+            if (label == L"1:20") zoom = 1.25;
+            else if (label == L"1:50") zoom = 0.5;
+            else if (label == L"1:100") zoom = 0.25;
+            else if (label == L"1:200") zoom = 0.125;
+            else if (label == L"1:500") zoom = 0.05;
+
+            m_camera.SetZoom(zoom);
+            UpdateScaleUI();
+            InvalidateCanvas();
+        }
+    }
+
+    void MainWindow::UpdateScaleUI()
+    {
+        if (!ScaleStatusText())
+            return;
+
+        struct ScalePreset { hstring label; double zoom; };
+        const ScalePreset presets[] = {
+            { L"1:20", 1.25 },
+            { L"1:50", 0.5 },
+            { L"1:100", 0.25 },
+            { L"1:200", 0.125 },
+            { L"1:500", 0.05 }
+        };
+
+        double zoom = m_camera.GetZoom();
+        int bestIndex = 0;
+        double bestDiff = std::abs(zoom - presets[0].zoom);
+        for (int i = 1; i < 5; ++i)
+        {
+            double diff = std::abs(zoom - presets[i].zoom);
+            if (diff < bestDiff)
+            {
+                bestDiff = diff;
+                bestIndex = i;
+            }
+        }
+
+        ScaleStatusText().Text(L"Масштаб: " + presets[bestIndex].label);
+
+        if (ScaleComboBox())
+        {
+            m_updatingScaleUI = true;
+            auto items = ScaleComboBox().Items();
+            for (uint32_t i = 0; i < items.Size(); ++i)
+            {
+                auto cbItem = items.GetAt(i).try_as<Microsoft::UI::Xaml::Controls::ComboBoxItem>();
+                if (cbItem && unbox_value<hstring>(cbItem.Content()) == presets[bestIndex].label)
+                {
+                    if (ScaleComboBox().SelectedIndex() != static_cast<int32_t>(i))
+                    {
+                        ScaleComboBox().SelectedIndex(static_cast<int32_t>(i));
+                    }
+                    break;
+                }
+            }
+            m_updatingScaleUI = false;
+        }
     }
 
     // Обработчик переключения вкладок видов
@@ -386,7 +431,6 @@ namespace winrt::estimate1::implementation
         WallToolButton().Style(currentTool == DrawingTool::Wall ? accentStyle : defaultStyle);
         DoorToolButton().Style(currentTool == DrawingTool::Door ? accentStyle : defaultStyle);
         WindowToolButton().Style(currentTool == DrawingTool::Window ? accentStyle : defaultStyle);
-        DimensionToolButton().Style(currentTool == DrawingTool::Dimension ? accentStyle : defaultStyle);
         
         // R2.5: Кнопки Trim и Split (если они есть в XAML, пока предполагаем что добавим их)
         if (TrimExtendToolButton())
@@ -419,8 +463,8 @@ namespace winrt::estimate1::implementation
     {
         auto session = args.DrawingSession();
 
-        // Очищаем холст светло-серым фоном
-        session.Clear(Windows::UI::ColorHelper::FromArgb(255, 250, 250, 250));
+        // Очищаем холст тёмным фоном
+        session.Clear(Windows::UI::ColorHelper::FromArgb(255, 31, 35, 41));
 
         // M5: Рисуем DXF-подложки (под сеткой или над — зависит от предпочтений)
         DxfReferenceRenderer::Draw(session, m_camera, m_dxfManager);
@@ -429,10 +473,10 @@ namespace winrt::estimate1::implementation
         IfcReferenceRenderer::Draw(session, m_camera, m_ifcManager);
 
         // Рисуем сетку
-        m_gridRenderer.Draw(args, m_camera);
-
-        // R5.2: Рисуем помещения (под стенами)
-        m_roomRenderer.Draw(session, m_camera, m_document, m_hoverRoomId);
+        if (m_showGrid)
+        {
+            m_gridRenderer.Draw(args, m_camera);
+        }
 
         // R6.2: Рисуем перекрытия (между помещениями и стенами)
         {
@@ -484,25 +528,6 @@ namespace winrt::estimate1::implementation
         // R6.5: Балки (поверх стен)
         StructureRenderer::DrawBeams(session, m_camera, m_document.GetBeams(), 0);
 
-        // M5.6: Рисуем линии привязки для стен при использовании инструмента стены
-        if (m_viewModel.CurrentTool() == DrawingTool::Wall)
-        {
-            for (const auto& wall : m_document.GetWalls())
-            {
-                if (wall)
-                {
-                    WallSnapRenderer::DrawWallReferenceLines(session, m_camera, *wall, m_wallSnapSystem, false);
-                }
-            }
-        }
-
-        // Рисуем размеры (поверх стен) если включены
-        if (m_showDimensions)
-        {
-            m_dimensionRenderer.SetHover(m_hoverDimensionId, m_hoverHandle);
-            m_dimensionRenderer.Draw(session, m_camera, m_document, m_layerManager);
-        }
-
         // Рисуем превью стены (если рисуем)
         if (m_viewModel.CurrentTool() == DrawingTool::Wall && m_wallTool.ShouldDrawPreview())
         {
@@ -526,13 +551,6 @@ namespace winrt::estimate1::implementation
                 m_layerManager,
                 m_wallTool.IsFlipped(),
                 m_wallTool.GetLocationLineMode());
-
-            // R2: Рисуем превью соединения (угол, тип)
-            if (m_previewJoin.has_value() && m_previewJoin->IsValid())
-            {
-                m_wallJoinRenderer.DrawJoinPreview(session, m_camera, *m_previewJoin, true);
-                m_wallJoinRenderer.DrawJoinTypeBadge(session, m_camera, *m_previewJoin);
-            }
 
         }
 
@@ -579,18 +597,6 @@ namespace winrt::estimate1::implementation
                     hit.wall->GetThickness(),
                     true);
             }
-        }
-
-        // Рисуем превью размера (если рисуем)
-        if (m_viewModel.CurrentTool() == DrawingTool::Dimension && m_dimensionTool.ShouldDrawPreview())
-        {
-            WorldPoint endPoint = m_currentSnap.hasSnap ? m_currentSnap.point : m_dimensionTool.GetCurrentPoint();
-            
-            m_dimensionRenderer.DrawPreview(
-                session, m_camera,
-                m_dimensionTool.GetStartPoint(),
-                endPoint,
-                m_dimensionTool.GetOffset());
         }
 
         // R6: Превью колонны
@@ -641,75 +647,7 @@ namespace winrt::estimate1::implementation
                     m_wallRenderer.DrawSnapPoint(session, m_camera, m_currentSnap.point, true);
                 }
 
-                // M5.6: Рисуем расширенный индикатор привязки к стене
-                if (m_currentWallSnap.IsValid)
-                {
-                    WallSnapRenderer::DrawSnapIndicator(session, m_camera, m_currentWallSnap);
-                    WallSnapRenderer::DrawSnapTooltip(session, m_camera, m_currentWallSnap);
-                    
-                    // Если размещаем стену - показать линию соединения
-                    if (m_viewModel.CurrentTool() == DrawingTool::Wall && m_wallTool.ShouldDrawPreview())
-                    {
-                        WallSnapRenderer::DrawSnapConnectionLine(session, m_camera, 
-                            m_wallTool.GetStartPoint(), m_currentWallSnap);
-                    }
-                }
-
-                // Рисуем информацию о масштабе в углу
-                double zoom = m_camera.GetZoom();
-                double mmPerPixel = 1.0 / zoom;
-        
-                wchar_t scaleText[64];
-        if (mmPerPixel >= 10)
-        {
-            swprintf_s(scaleText, L"1 px = %.0f мм", mmPerPixel);
-        }
-        else if (mmPerPixel >= 1)
-        {
-            swprintf_s(scaleText, L"1 px = %.1f мм", mmPerPixel);
-        }
-        else
-        {
-            swprintf_s(scaleText, L"%.1f px = 1 мм", zoom);
-        }
-
-        session.DrawText(
-            scaleText,
-            10.0f, 10.0f,
-            Windows::UI::ColorHelper::FromArgb(180, 80, 80, 80));
-
-        // Отображаем информацию о видимых слоях
-        float layerInfoY = 30.0f;
-        const auto& layers = m_layerManager.GetLayers();
-        for (const auto& layer : layers)
-        {
-            if (layer.IsVisible())
-            {
-                Windows::UI::Color layerColor = layer.GetColor();
-                std::wstring layerName = layer.GetName();
-                
-                // Рисуем индикатор цвета слоя
-                session.FillRectangle(
-                    Windows::Foundation::Rect(10.0f, layerInfoY, 12.0f, 12.0f),
-                    layerColor);
-                
-                // Рисуем название слоя
-                session.DrawText(
-                    layerName.c_str(),
-                    26.0f, layerInfoY - 2.0f,
-                    Windows::UI::ColorHelper::FromArgb(150, 80, 80, 80));
-                
-                layerInfoY += 18.0f;
-            }
-        }
-
-        // Показываем количество стен
-        wchar_t wallCountText[64];
-        swprintf_s(wallCountText, L"Стен: %zu", m_document.GetWallCount());
-        session.DrawText(
-            wallCountText,
-            10.0f, layerInfoY + 10.0f,
-            Windows::UI::ColorHelper::FromArgb(150, 80, 80, 80));
+                // M5.6: Расширенный индикатор привязки отключён (будет переработан позже)
 
         // M5.6: Показываем режим привязки при использовании инструмента стены
         if (m_viewModel.CurrentTool() == DrawingTool::Wall)
@@ -759,63 +697,6 @@ namespace winrt::estimate1::implementation
             // Преобразуем экранные координаты в мировые
             WorldPoint worldPos = m_camera.ScreenToWorld(m_lastPointerPosition);
 
-            // M3.5: если кликаем по размеру — начинаем drag.
-            // Drag доступен из Select и Dimension (когда появится инструмент), чтобы можно было быстро раздвигать размеры.
-            {
-                // Сначала выбираем (может попасть по линии), но drag стартуем только по ручке.
-                double tolerance = 20.0;
-                Element* hit = m_document.HitTest(worldPos, tolerance, m_layerManager);
-                Dimension* hitDim = dynamic_cast<Dimension*>(hit);
-                if (hitDim)
-                {
-                    // Требуем попадание по ручкам. Точность в world зависит от zoom.
-                    double handleTolWorld = 10.0 / m_camera.GetZoom(); // ~10px
-                    auto handleKind = hitDim->HitTestHandleKind(worldPos, handleTolWorld);
-                    if (handleKind == DimensionHandle::None)
-                    {
-                        // Просто выделяем (без drag)
-                        m_document.SetSelectedElement(hitDim);
-                        UpdateSelectedElementUI();
-                        InvalidateCanvas();
-                    }
-                    else
-                    {
-                    // Сейчас разрешаем drag только за среднюю ручку: это безопасно для авторазмеров.
-                    // Концевые ручки зарезервированы под ручные размеры/перепривязку.
-                    if (handleKind != DimensionHandle::Middle)
-                    {
-                        m_document.SetSelectedElement(hitDim);
-                        UpdateSelectedElementUI();
-                        m_hoverDimensionId = hitDim->GetId();
-                        m_hoverHandle = handleKind;
-                        InvalidateCanvas();
-                        return;
-                    }
-
-                    // Выбираем размер
-                    m_document.SetSelectedElement(hitDim);
-                    UpdateSelectedElementUI();
-
-                    m_isDraggingDimension = true;
-                    m_dragDimensionId = hitDim->GetId();
-                    m_dragHandle = handleKind;
-                    m_dragBaseP1 = hitDim->GetP1();
-                    m_dragBaseP2 = hitDim->GetP2();
-                    m_dragStartOffset = hitDim->GetOffset();
-                    m_dragStartWorld = worldPos;
-
-                    // Обновляем hover, чтобы сразу подсветить активную ручку
-                    m_hoverDimensionId = hitDim->GetId();
-                    m_hoverHandle = handleKind;
-
-                    element.CapturePointer(e.Pointer());
-                    e.Handled(true);
-                    InvalidateCanvas();
-                    return;
-                    }
-                }
-            }
-            
             // Обработка текущего инструмента
             HandleToolClick(worldPos);
         }
@@ -875,21 +756,6 @@ namespace winrt::estimate1::implementation
                             clickPoint, m_document, m_snapManager, m_layerManager, m_camera);
                 
                         if (wallCreated)
-                        {
-                            UpdateSelectedElementUI();
-                        }
-                
-                        InvalidateCanvas();
-                    }
-                    break;
-
-                case DrawingTool::Dimension:
-                    {
-                        // Обрабатываем клик инструмента размера
-                        bool dimCreated = m_dimensionTool.OnClick(
-                            worldPoint, m_document, m_snapManager, m_layerManager, m_camera);
-                
-                        if (dimCreated)
                         {
                             UpdateSelectedElementUI();
                         }
@@ -1030,7 +896,6 @@ namespace winrt::estimate1::implementation
                 
                 // Показываем панель свойств стены
                 WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Visible);
-                DimensionPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
 
                 // 1) Тип стены
                 if (WallTypeComboBox())
@@ -1108,66 +973,48 @@ namespace winrt::estimate1::implementation
             }
             else
             {
-                // Может быть размер
-                Dimension* dim = dynamic_cast<Dimension*>(selected);
-                if (dim)
+                // R5.2: Проверяем, помещение ли это
+                Room* room = dynamic_cast<Room*>(selected);
+                if (room)
                 {
-                    wchar_t info[128];
-                    swprintf_s(info, L"Размер (%.0f мм)", dim->GetValueMm());
+                    wchar_t info[256];
+                    swprintf_s(info, L"Помещение %ls: %ls (%.2f м²)", 
+                        room->GetNumber().c_str(),
+                        room->GetName().c_str(),
+                        room->GetAreaSqM());
                     SelectedElementInfo().Text(info);
-
+                    
                     WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-                    DimensionPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Visible);
-                    DimensionLockCheckBox().IsChecked(dim->IsLocked());
-                    DimensionOffsetBox().Value(dim->GetOffset());
+                    // TODO: RoomPropertiesPanel для R5.3
                 }
                 else
                 {
-                    // R5.2: Проверяем, помещение ли это
-                    Room* room = dynamic_cast<Room*>(selected);
-                    if (room)
+                    SelectedElementInfo().Text(L"Выбран элемент");
+                    WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
+                    
+                    // R6.6: Свойства колонн и перекрытий (пока просто отображаем инфо)
+                    Column* col = dynamic_cast<Column*>(selected);
+                    if (col)
                     {
-                        wchar_t info[256];
-                        swprintf_s(info, L"Помещение %ls: %ls (%.2f м²)", 
-                            room->GetNumber().c_str(),
-                            room->GetName().c_str(),
-                            room->GetAreaSqM());
+                        wchar_t info[128];
+                        swprintf_s(info, L"Колонна %ls", col->GetShape() == ColumnShape::Rectangular ? L"Прямоуг." : L"Круглая");
                         SelectedElementInfo().Text(info);
-                        
-                        WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-                        DimensionPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-                        // TODO: RoomPropertiesPanel для R5.3
                     }
-                    else
+                    
+                    Slab* slab = dynamic_cast<Slab*>(selected);
+                    if (slab)
                     {
-                        SelectedElementInfo().Text(L"Выбран элемент");
-                        WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-                        DimensionPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-                        
-                        // R6.6: Свойства колонн и перекрытий (пока просто отображаем инфо)
-                        Column* col = dynamic_cast<Column*>(selected);
-                        if (col)
-                        {
-                            wchar_t info[128];
-                            swprintf_s(info, L"Колонна %ls", col->GetShape() == ColumnShape::Rectangular ? L"Прямоуг." : L"Круглая");
-                            SelectedElementInfo().Text(info);
-                        }
-                        
-                        Slab* slab = dynamic_cast<Slab*>(selected);
-                        if (slab)
-                        {
-                            wchar_t info[128];
-                            swprintf_s(info, L"Перекрытие (%.0f мм)", slab->GetThickness());
-                            SelectedElementInfo().Text(info);
-                        }
+                        wchar_t info[128];
+                        swprintf_s(info, L"Перекрытие (%.0f мм)", slab->GetThickness());
+                        SelectedElementInfo().Text(info);
+                    }
 
-                        Beam* beam = dynamic_cast<Beam*>(selected);
-                        if (beam)
-                        {
-                             wchar_t info[128];
-                             swprintf_s(info, L"Балка %.0f x %.0f", beam->GetWidth(), beam->GetHeight());
-                             SelectedElementInfo().Text(info);
-                        }
+                    Beam* beam = dynamic_cast<Beam*>(selected);
+                    if (beam)
+                    {
+                         wchar_t info[128];
+                         swprintf_s(info, L"Балка %.0f x %.0f", beam->GetWidth(), beam->GetHeight());
+                         SelectedElementInfo().Text(info);
                     }
                 }
             }
@@ -1176,46 +1023,7 @@ namespace winrt::estimate1::implementation
         {
             SelectedElementInfo().Text(L"Ничего не выбрано");
             WallPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
-            DimensionPropertiesPanel().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
         }
-    }
-
-    void MainWindow::OnDimensionLockChanged(
-        Windows::Foundation::IInspectable const& sender,
-        Microsoft::UI::Xaml::RoutedEventArgs const& e)
-    {
-        (void)sender;
-        (void)e;
-
-        auto selected = m_document.GetSelectedElement();
-        auto dim = dynamic_cast<Dimension*>(selected);
-        if (!dim)
-            return;
-
-        bool isLocked = DimensionLockCheckBox().IsChecked().Value();
-        dim->SetLocked(isLocked);
-        m_viewModel.HasUnsavedChanges(true);
-        InvalidateCanvas();
-    }
-
-    void MainWindow::OnDimensionOffsetChanged(
-        Windows::Foundation::IInspectable const& sender,
-        Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& e)
-    {
-        (void)sender;
-
-        auto selected = m_document.GetSelectedElement();
-        auto dim = dynamic_cast<Dimension*>(selected);
-        if (!dim)
-            return;
-
-        dim->SetOffset(e.NewValue());
-        // Чтобы offset сохранялся при перестроениях — логично зафиксировать.
-        // Пользователь может снять lock вручную.
-        dim->SetLocked(true);
-
-        m_viewModel.HasUnsavedChanges(true);
-        InvalidateCanvas();
     }
 
     void MainWindow::OnWallTypeChanged(
@@ -1331,60 +1139,8 @@ namespace winrt::estimate1::implementation
         m_viewModel.CursorX(worldPos.X);
         m_viewModel.CursorY(worldPos.Y);
 
-        // Если drag'аем размер
-        if (m_isDraggingDimension)
-        {
-            auto selected = m_document.GetSelectedElement();
-            auto dim = dynamic_cast<Dimension*>(selected);
-            if (dim && dim->GetId() == m_dragDimensionId)
-            {
-                if (m_dragHandle == DimensionHandle::Middle)
-                {
-                    // Пересчёт offset: проектируем вектор курсора на нормаль базовой линии P1-P2.
-                    WorldPoint p1 = m_dragBaseP1;
-                    WorldPoint p2 = m_dragBaseP2;
-                    double dx = p2.X - p1.X;
-                    double dy = p2.Y - p1.Y;
-                    double len = std::sqrt(dx * dx + dy * dy);
-                    if (len > 0.001)
-                    {
-                        double nx = -dy / len;
-                        double ny = dx / len;
-                        WorldPoint delta(worldPos.X - m_dragStartWorld.X, worldPos.Y - m_dragStartWorld.Y);
-                        double proj = delta.X * nx + delta.Y * ny;
-                        double newOffset = m_dragStartOffset + proj;
-                        if (newOffset < 0.0) newOffset = 0.0;
-
-                        // Если размер в цепочке -> обновляем всю цепочку
-                        uint64_t chainId = dim->GetChainId();
-                        if (chainId != 0)
-                        {
-                            // Обновляем все размеры с этим chainId
-                            for (const auto& otherDim : m_document.GetDimensions())
-                            {
-                                if (otherDim && otherDim->GetChainId() == chainId)
-                                {
-                                    otherDim->SetOffset(newOffset);
-                                    otherDim->SetLocked(true);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            dim->SetOffset(newOffset);
-                            dim->SetLocked(true);
-                        }
-
-                        DimensionOffsetBox().Value(newOffset);
-                        m_viewModel.HasUnsavedChanges(true);
-                    }
-                }
-            }
-
-            InvalidateCanvas();
-        }
         // Если панорамируем - перемещаем камеру
-        else if (m_isPanning)
+        if (m_isPanning)
         {
             float deltaX = currentPosition.X - m_lastPointerPosition.X;
             float deltaY = currentPosition.Y - m_lastPointerPosition.Y;
@@ -1396,199 +1152,143 @@ namespace winrt::estimate1::implementation
         }
         else
         {
-            // Hover ручек размеров (только когда не панорамируем и не drag'аем)
-            uint64_t newHoverId = 0;
-            DimensionHandle newHoverHandle = DimensionHandle::None;
-
-            // В world-tolerance используем ~10px
-            double handleTolWorld = 10.0 / m_camera.GetZoom();
-            for (const auto& d : m_document.GetDimensions())
+            // M9: Hover над стенами (для инструмента Select)
+            if (m_viewModel.CurrentTool() == DrawingTool::Select)
             {
-                if (!d)
-                    continue;
-                auto kind = d->HitTestHandleKind(worldPos, handleTolWorld);
-                if (kind != DimensionHandle::None)
+                uint64_t newHoverWallId = 0;
+                uint64_t newHoverRoomId = 0;
+                double hitTolerance = 5.0 / m_camera.GetZoom();
+                
+                // Сначала проверяем стены (приоритет)
+                for (const auto& wall : m_document.GetWalls())
                 {
-                    newHoverId = d->GetId();
-                    newHoverHandle = kind;
-                    break;
+                    if (wall && wall->HitTest(worldPos, hitTolerance))
+                    {
+                        newHoverWallId = wall->GetId();
+                        break;
+                    }
                 }
-                        }
-
-                        if (newHoverId != m_hoverDimensionId || newHoverHandle != m_hoverHandle)
+                
+                // R5.2: Если не попали в стену, проверяем помещения
+                if (newHoverWallId == 0)
+                {
+                    for (const auto& room : m_document.GetRooms())
+                    {
+                        if (room && room->HitTest(worldPos, hitTolerance))
                         {
-                            m_hoverDimensionId = newHoverId;
-                            m_hoverHandle = newHoverHandle;
-
-                            InvalidateCanvas();
-                        }
-
-                        // M9: Hover над стенами (для инструмента Select)
-                        if (m_viewModel.CurrentTool() == DrawingTool::Select)
-                        {
-                            uint64_t newHoverWallId = 0;
-                            uint64_t newHoverRoomId = 0;
-                            double hitTolerance = 5.0 / m_camera.GetZoom();
-                            
-                            // Сначала проверяем стены (приоритет)
-                            for (const auto& wall : m_document.GetWalls())
-                            {
-                                if (wall && wall->HitTest(worldPos, hitTolerance))
-                                {
-                                    newHoverWallId = wall->GetId();
-                                    break;
-                                }
-                            }
-                            
-                            // R5.2: Если не попали в стену, проверяем помещения
-                            if (newHoverWallId == 0)
-                            {
-                                for (const auto& room : m_document.GetRooms())
-                                {
-                                    if (room && room->HitTest(worldPos, hitTolerance))
-                                    {
-                                        newHoverRoomId = room->GetId();
-                                        break;
-                                    }
-                                }
-                            }
-                            
-                            bool needRedraw = false;
-                            if (newHoverWallId != m_hoverWallId)
-                            {
-                                m_hoverWallId = newHoverWallId;
-                                needRedraw = true;
-                            }
-                            if (newHoverRoomId != m_hoverRoomId)
-                            {
-                                m_hoverRoomId = newHoverRoomId;
-                                needRedraw = true;
-                            }
-                            
-                            if (needRedraw)
-                                InvalidateCanvas();
-                        }
-
-                        // Обновляем привязку и превью для инструмента стены
-                        if (m_viewModel.CurrentTool() == DrawingTool::Wall)
-                        {
-                            // Ищем точку привязки (базовая)
-                            m_currentSnap = m_snapManager.FindSnap(
-                                worldPos, m_document, m_layerManager, m_camera);
-
-                            // M5.6: Расширенная привязка к стенам
-                            m_currentWallSnap = m_wallSnapSystem.FindBestSnap(
-                                worldPos, m_document.GetWalls(), m_camera.GetZoom());
-                            
-                            // Обновляем индикатор режима в статусной строке
-                            if (SnapIndicatorText())
-                            {
-                                if (m_currentWallSnap.IsValid)
-                                {
-                                    std::wstring snapText = WallSnapSystem::GetSnapPlaneShortName(m_currentWallSnap.Plane);
-                                    SnapIndicatorText().Text(winrt::hstring(snapText));
-                                }
-                                else
-                                {
-                                    SnapIndicatorText().Text(L"");
-                                }
-                            }
-
-                            // Обновляем текущую точку инструмента
-                            m_wallTool.OnMouseMove(worldPos);
-
-                            // R2: Обновляем превью соединения
-                            if (m_wallTool.ShouldDrawPreview())
-                            {
-                                WorldPoint endPt = m_currentWallSnap.IsValid ? m_currentWallSnap.ProjectedPoint :
-                                                   (m_currentSnap.hasSnap ? m_currentSnap.point : worldPos);
-                                m_previewJoin = m_wallJoinSystem.FindPreviewJoin(
-                                    m_wallTool.GetStartPoint(),
-                                    endPt,
-                                    m_wallTool.GetThickness(),
-                                    m_document.GetWalls());
-                            }
-                            else
-                            {
-                                m_previewJoin = std::nullopt;
-                            }
-
-                            // Перерисовываем для обновления превью
-                            InvalidateCanvas();
-                        }
-                        // Обновляем привязку и превью для инструмента размера
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Dimension)
-                        {
-                            // Ищем точку привязки
-                            m_currentSnap = m_snapManager.FindSnap(
-                                worldPos, m_document, m_layerManager, m_camera);
-
-                            // Обновляем текущую точку инструмента
-                            m_dimensionTool.OnMouseMove(worldPos);
-
-                            // Перерисовываем для обновления превью
-                            InvalidateCanvas();
-                        }
-                        // R4: Обновляем превью для инструмента двери
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Door)
-                        {
-                            // Преобразуем unique_ptr в shared_ptr для инструмента
-                            std::vector<std::shared_ptr<Wall>> wallsForTool;
-                            for (const auto& w : m_document.GetWalls())
-                            {
-                                if (w) wallsForTool.push_back(std::shared_ptr<Wall>(w.get(), [](Wall*){}));
-                            }
-                            m_doorTool.UpdatePreview(worldPos, wallsForTool);
-                            InvalidateCanvas();
-                        }
-                        // R4: Обновляем превью для инструмента окна
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Window)
-                        {
-                            std::vector<std::shared_ptr<Wall>> wallsForTool;
-                            for (const auto& w : m_document.GetWalls())
-                            {
-                                if (w) wallsForTool.push_back(std::shared_ptr<Wall>(w.get(), [](Wall*){}));
-                            }
-                            m_windowTool.UpdatePreview(worldPos, wallsForTool);
-                            InvalidateCanvas();
-                        }
-                        else if (m_viewModel.CurrentTool() == DrawingTool::TrimExtend)
-                        {
-                            m_trimExtendTool.OnMouseMove(worldPos);
-                            InvalidateCanvas();
-                        }
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Split)
-                        {
-                            m_splitTool.OnMouseMove(worldPos);
-                            InvalidateCanvas();
-                        }
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Column)
-                        {
-                            m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
-                            WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
-                            m_columnTool.UpdatePreview(pos);
-                            InvalidateCanvas();
-                        }
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Slab)
-                        {
-                            m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
-                            WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
-                            m_slabTool.OnMouseMove(pos);
-                            InvalidateCanvas();
-                        }
-                        else if (m_viewModel.CurrentTool() == DrawingTool::Beam)
-                        {
-                            m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
-                            WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
-                            m_beamTool.OnMouseMove(pos);
-                            InvalidateCanvas();
-                        }
-                        else
-                        {
-                            // Сбрасываем привязку если не рисуем
-                            m_currentSnap.hasSnap = false;
+                            newHoverRoomId = room->GetId();
+                            break;
                         }
                     }
+                }
+                
+                bool needRedraw = false;
+                if (newHoverWallId != m_hoverWallId)
+                {
+                    m_hoverWallId = newHoverWallId;
+                    needRedraw = true;
+                }
+                if (newHoverRoomId != m_hoverRoomId)
+                {
+                    m_hoverRoomId = newHoverRoomId;
+                    needRedraw = true;
+                }
+                
+                if (needRedraw)
+                    InvalidateCanvas();
+            }
+
+            // Обновляем привязку и превью для инструмента стены
+            if (m_viewModel.CurrentTool() == DrawingTool::Wall)
+            {
+                // Ищем точку привязки (базовая)
+                m_currentSnap = m_snapManager.FindSnap(
+                    worldPos, m_document, m_layerManager, m_camera);
+
+                // M5.6: Расширенная привязка к стенам
+                m_currentWallSnap = m_wallSnapSystem.FindBestSnap(
+                    worldPos, m_document.GetWalls(), m_camera.GetZoom());
+                
+                // Обновляем индикатор режима в статусной строке
+                if (SnapIndicatorText())
+                {
+                    if (m_currentWallSnap.IsValid)
+                    {
+                        std::wstring snapText = WallSnapSystem::GetSnapPlaneShortName(m_currentWallSnap.Plane);
+                        SnapIndicatorText().Text(winrt::hstring(snapText));
+                    }
+                    else
+                    {
+                        SnapIndicatorText().Text(L"");
+                    }
+                }
+
+                // Обновляем текущую точку инструмента
+                m_wallTool.OnMouseMove(worldPos);
+
+                // Перерисовываем для обновления превью
+                InvalidateCanvas();
+            }
+            // R4: Обновляем превью для инструмента двери
+            else if (m_viewModel.CurrentTool() == DrawingTool::Door)
+            {
+                // Преобразуем unique_ptr в shared_ptr для инструмента
+                std::vector<std::shared_ptr<Wall>> wallsForTool;
+                for (const auto& w : m_document.GetWalls())
+                {
+                    if (w) wallsForTool.push_back(std::shared_ptr<Wall>(w.get(), [](Wall*){}));
+                }
+                m_doorTool.UpdatePreview(worldPos, wallsForTool);
+                InvalidateCanvas();
+            }
+            // R4: Обновляем превью для инструмента окна
+            else if (m_viewModel.CurrentTool() == DrawingTool::Window)
+            {
+                std::vector<std::shared_ptr<Wall>> wallsForTool;
+                for (const auto& w : m_document.GetWalls())
+                {
+                    if (w) wallsForTool.push_back(std::shared_ptr<Wall>(w.get(), [](Wall*){}));
+                }
+                m_windowTool.UpdatePreview(worldPos, wallsForTool);
+                InvalidateCanvas();
+            }
+            else if (m_viewModel.CurrentTool() == DrawingTool::TrimExtend)
+            {
+                m_trimExtendTool.OnMouseMove(worldPos);
+                InvalidateCanvas();
+            }
+            else if (m_viewModel.CurrentTool() == DrawingTool::Split)
+            {
+                m_splitTool.OnMouseMove(worldPos);
+                InvalidateCanvas();
+            }
+            else if (m_viewModel.CurrentTool() == DrawingTool::Column)
+            {
+                m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
+                WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
+                m_columnTool.UpdatePreview(pos);
+                InvalidateCanvas();
+            }
+            else if (m_viewModel.CurrentTool() == DrawingTool::Slab)
+            {
+                m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
+                WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
+                m_slabTool.OnMouseMove(pos);
+                InvalidateCanvas();
+            }
+            else if (m_viewModel.CurrentTool() == DrawingTool::Beam)
+            {
+                m_currentSnap = m_snapManager.FindSnap(worldPos, m_document, m_layerManager, m_camera);
+                WorldPoint pos = m_currentSnap.hasSnap ? m_currentSnap.point : worldPos;
+                m_beamTool.OnMouseMove(pos);
+                InvalidateCanvas();
+            }
+            else
+            {
+                // Сбрасываем привязку если не рисуем
+                m_currentSnap.hasSnap = false;
+            }
+        }
 
                     e.Handled(true);
                 }
@@ -1599,16 +1299,6 @@ namespace winrt::estimate1::implementation
                     PointerRoutedEventArgs const& e)
                 {
                     auto element = sender.as<Microsoft::UI::Xaml::UIElement>();
-
-        if (m_isDraggingDimension)
-        {
-            m_isDraggingDimension = false;
-            m_dragDimensionId = 0;
-            m_dragHandle = DimensionHandle::None;
-            element.ReleasePointerCapture(e.Pointer());
-            e.Handled(true);
-            return;
-        }
 
         if (m_isPanning)
         {
@@ -1633,7 +1323,8 @@ namespace winrt::estimate1::implementation
         int delta = props.MouseWheelDelta();
 
         // Вычисляем коэффициент масштабирования
-        double zoomFactor = delta > 0 ? 1.15 : (1.0 / 1.15);
+        // Инвертируем направление: «приближение» должно увеличивать zoom
+        double zoomFactor = delta > 0 ? (1.0 / 1.15) : 1.15;
 
         // Масштабируем относительно позиции курсора
         ScreenPoint screenPoint(
@@ -1647,6 +1338,7 @@ namespace winrt::estimate1::implementation
         m_viewModel.CursorX(worldPos.X);
         m_viewModel.CursorY(worldPos.Y);
 
+        UpdateScaleUI();
         InvalidateCanvas();
         e.Handled(true);
     }
@@ -1715,18 +1407,11 @@ namespace winrt::estimate1::implementation
                     InvalidateCanvas();
                     e.Handled(true);
                 }
-                else if (m_viewModel.CurrentTool() == DrawingTool::Dimension)
-                {
-                    m_dimensionTool.Cancel();
-                    InvalidateCanvas();
-                    e.Handled(true);
-                }
             }
             // V - инструмент выбора
             else if (key == Windows::System::VirtualKey::V)
             {
                 m_wallTool.Cancel();
-                m_dimensionTool.Cancel();
                 m_viewModel.CurrentTool(DrawingTool::Select);
                 UpdateToolButtonStates();
                 InvalidateCanvas();
@@ -1735,17 +1420,7 @@ namespace winrt::estimate1::implementation
             // W - инструмент стены
             else if (key == Windows::System::VirtualKey::W)
             {
-                m_dimensionTool.Cancel();
                 m_viewModel.CurrentTool(DrawingTool::Wall);
-                UpdateToolButtonStates();
-                InvalidateCanvas();
-                e.Handled(true);
-            }
-            // R - инструмент размера
-            else if (key == Windows::System::VirtualKey::R)
-            {
-                m_wallTool.Cancel();
-                m_viewModel.CurrentTool(DrawingTool::Dimension);
                 UpdateToolButtonStates();
                 InvalidateCanvas();
                 e.Handled(true);
@@ -1754,7 +1429,6 @@ namespace winrt::estimate1::implementation
             else if (key == Windows::System::VirtualKey::D)
             {
                 m_wallTool.Cancel();
-                m_dimensionTool.Cancel();
                 m_viewModel.CurrentTool(DrawingTool::Door);
                 UpdateToolButtonStates();
                 InvalidateCanvas();
@@ -1764,7 +1438,6 @@ namespace winrt::estimate1::implementation
             else if (key == Windows::System::VirtualKey::O)
             {
                 m_wallTool.Cancel();
-                m_dimensionTool.Cancel();
                 m_viewModel.CurrentTool(DrawingTool::Window);
                 UpdateToolButtonStates();
                 InvalidateCanvas();
@@ -1789,16 +1462,7 @@ namespace winrt::estimate1::implementation
                     }
                     else
                     {
-                        Dimension* dim = dynamic_cast<Dimension*>(selected);
-                        if (dim && dim->IsManual())
-                        {
-                            m_document.RemoveManualDimension(dim->GetId());
-                            m_document.ClearSelection();
-                            m_viewModel.HasUnsavedChanges(true);
-                            UpdateSelectedElementUI();
-                            InvalidateCanvas();
-                            e.Handled(true);
-                        }
+                        // другие элементы обрабатываются в соответствующих ветках
                     }
                 }
             }
@@ -2453,7 +2117,6 @@ namespace winrt::estimate1::implementation
         
         // Инициализируем дефолтные данные
         m_document.InitializeDefaults();
-        m_wallJoinSystem.SetSettings(m_document.GetJoinSettings());
         RebuildWallTypeCombo();
         
         // Сбрасываем выделение
@@ -2662,9 +2325,6 @@ namespace winrt::estimate1::implementation
         {
             m_currentFilePath = filePath;
             m_viewModel.HasUnsavedChanges(false);
-            // Применяем настройки соединений из загруженного документа
-            m_wallJoinSystem.SetSettings(m_document.GetJoinSettings());
-            
             // Обновляем имя проекта
             if (!m_projectMetadata.Name.empty())
             {

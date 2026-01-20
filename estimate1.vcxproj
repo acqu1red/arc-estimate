@@ -162,8 +162,6 @@
     <ClInclude Include="StructureTools.h" />
     <ClInclude Include="Tests.h" />
     <ClInclude Include="UndoManager.h" />
-    <ClInclude Include="WallJoinManager.h" />
-    <ClInclude Include="WallJoinSystem.h" />
     <ClInclude Include="WallRenderer.h" />
     <ClInclude Include="WallSnapRenderer.h" />
     <ClInclude Include="WallSnapSystem.h" />
@@ -230,6 +228,12 @@
     <None Include="docs\M6_SaveLoad.md" />
     <None Include="docs\PROGRESS.md" />
     <None Include="docs\ROADMAP.md" />
+    <None Include="docs\START_HERE.md" />
+    <None Include="docs\WALL_FIX_SUMMARY.md" />
+    <None Include="docs\WALL_RENDERING_TECHNICAL_REPORT.md" />
+    <None Include="docs\WALL_RENDERING_TEST_GUIDE.md" />
+    <None Include="docs\WALL_STATIC_RENDERING_ROADMAP.md" />
+    <None Include="docs\WALL_STATIC_THICKNESS_FIX.md" />
     <None Include="docs\Русская_документация.md" />
     <None Include="dxf files\Рабочка_Комсомольский_План_этажа_02_Обмерочный_план.dxf" />
     <None Include="dxf files\Рабочка_Комсомольский_План_этажа_03_План_демонтажа.dxf" />

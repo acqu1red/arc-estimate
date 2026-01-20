@@ -5,69 +5,79 @@
 
 namespace winrt::estimate1
 {
-    // Класс для отрисовки сетки на холсте
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     class GridRenderer
     {
     public:
         GridRenderer() = default;
 
-        // Отрисовка сетки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void Draw(
             const Microsoft::Graphics::Canvas::UI::Xaml::CanvasDrawEventArgs& args,
             const Camera& camera)
         {
             auto session = args.DrawingSession();
             
-            // Получаем видимую область
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             WorldPoint topLeft, bottomRight;
             camera.GetVisibleBounds(topLeft, bottomRight);
 
-            // Определяем шаг сетки в зависимости от масштаба
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double zoom = camera.GetZoom();
             GridSpacing spacing = CalculateGridSpacing(zoom);
 
-            // Рисуем минорную сетку
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             DrawGridLines(session, camera, topLeft, bottomRight, 
                 spacing.minorSpacing, m_minorGridColor, m_minorLineWidth);
 
-            // Рисуем мажорную сетку
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             DrawGridLines(session, camera, topLeft, bottomRight, 
                 spacing.majorSpacing, m_majorGridColor, m_majorLineWidth);
 
-            // Рисуем оси координат
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (m_showAxes)
             {
                 DrawAxes(session, camera);
             }
         }
 
-        // Настройки сетки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void SetShowAxes(bool show) { m_showAxes = show; }
         bool GetShowAxes() const { return m_showAxes; }
+
+        void SetGridColors(
+            const Windows::UI::Color& minorColor,
+            const Windows::UI::Color& majorColor,
+            const Windows::UI::Color& axisColor)
+        {
+            m_minorGridColor = minorColor;
+            m_majorGridColor = majorColor;
+            m_axisColor = axisColor;
+        }
 
     private:
         struct GridSpacing
         {
-            double minorSpacing;  // Шаг минорной сетки в мм
-            double majorSpacing;  // Шаг мажорной сетки в мм
+            double minorSpacing;  // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ
+            double majorSpacing;  // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ
         };
 
-        // Расчёт оптимального шага сетки в зависимости от масштаба
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         GridSpacing CalculateGridSpacing(double zoom) const
         {
-            // Целевое расстояние между линиями сетки на экране (пиксели)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             constexpr double targetMinorPixels = 20.0;
             constexpr double targetMajorPixels = 100.0;
 
-            // Вычисляем шаг в мировых единицах
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double rawMinorSpacing = targetMinorPixels / zoom;
             double rawMajorSpacing = targetMajorPixels / zoom;
 
-            // Округляем до "красивых" значений (10, 50, 100, 500, 1000 мм и т.д.)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (10, 50, 100, 500, 1000 пїЅпїЅ пїЅ пїЅ.пїЅ.)
             double minorSpacing = RoundToNiceValue(rawMinorSpacing);
             double majorSpacing = RoundToNiceValue(rawMajorSpacing);
 
-            // Мажорная сетка должна быть кратна минорной
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (majorSpacing <= minorSpacing)
             {
                 majorSpacing = minorSpacing * 5;
@@ -76,17 +86,17 @@ namespace winrt::estimate1
             return { minorSpacing, majorSpacing };
         }
 
-        // Округление до "красивого" значения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         double RoundToNiceValue(double value) const
         {
-            // Возможные базовые значения: 1, 2, 5
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: 1, 2, 5
             static const double bases[] = { 1.0, 2.0, 5.0 };
 
-            // Находим порядок величины
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double magnitude = std::pow(10.0, std::floor(std::log10(value)));
             double normalized = value / magnitude;
 
-            // Выбираем ближайшее базовое значение
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double best = bases[0];
             double bestDiff = std::abs(normalized - bases[0]);
 
@@ -103,7 +113,7 @@ namespace winrt::estimate1
             return best * magnitude;
         }
 
-        // Отрисовка линий сетки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void DrawGridLines(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -115,7 +125,7 @@ namespace winrt::estimate1
         {
             if (spacing <= 0) return;
 
-            // Вертикальные линии
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             double startX = std::floor(topLeft.X / spacing) * spacing;
             double endX = std::ceil(bottomRight.X / spacing) * spacing;
 
@@ -130,7 +140,7 @@ namespace winrt::estimate1
                     color, lineWidth);
             }
 
-            // Горизонтальные линии
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             double startY = std::floor(topLeft.Y / spacing) * spacing;
             double endY = std::ceil(bottomRight.Y / spacing) * spacing;
 
@@ -146,7 +156,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Отрисовка осей координат
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void DrawAxes(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera)
@@ -154,10 +164,10 @@ namespace winrt::estimate1
             float canvasWidth = camera.GetCanvasWidth();
             float canvasHeight = camera.GetCanvasHeight();
 
-            // Находим позицию осей на экране
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             ScreenPoint origin = camera.WorldToScreen(WorldPoint(0, 0));
 
-            // Ось X (горизонтальная)
+            // пїЅпїЅпїЅ X (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             if (origin.Y >= 0 && origin.Y <= canvasHeight)
             {
                 session.DrawLine(
@@ -166,7 +176,7 @@ namespace winrt::estimate1
                     m_axisColor, m_axisLineWidth);
             }
 
-            // Ось Y (вертикальная)
+            // пїЅпїЅпїЅ Y (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             if (origin.X >= 0 && origin.X <= canvasWidth)
             {
                 session.DrawLine(
@@ -176,7 +186,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Цвета и толщины линий
+        // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         Windows::UI::Color m_minorGridColor{ Windows::UI::ColorHelper::FromArgb(40, 128, 128, 128) };
         Windows::UI::Color m_majorGridColor{ Windows::UI::ColorHelper::FromArgb(80, 128, 128, 128) };
         Windows::UI::Color m_axisColor{ Windows::UI::ColorHelper::FromArgb(150, 100, 100, 200) };

@@ -8,7 +8,6 @@
 #include "Opening.h"
 #include "Room.h"
 #include "RoomDetector.h"
-#include "WallJoinSystem.h"
 #include "Zone.h"
 #include "Structure.h"
 #include <vector>
@@ -18,7 +17,7 @@
 
 namespace winrt::estimate1
 {
-    // Коллекция элементов документа
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     class DocumentModel
     {
     public:
@@ -27,8 +26,8 @@ namespace winrt::estimate1
             InitializeDefaults();
         }
 
-        // M3.5: уведомление об изменении геометрии/параметров стены.
-        // Сейчас просто пересобираем авторазмеры целиком (достаточно для первого среза).
+        // M3.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ).
         void NotifyWallChanged(uint64_t wallId)
         {
             (void)wallId;
@@ -41,73 +40,72 @@ namespace winrt::estimate1
             m_wallTypes.clear();
             m_doorTypes.clear();
             m_windowTypes.clear();
-            m_joinSettings = JoinSettings{};
 
-            // Материалы (минимально для M3.1)
-            auto matBrick = std::make_shared<Material>(IdGenerator::Next(), L"Кирпич");
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ M3.1)
+            auto matBrick = std::make_shared<Material>(IdGenerator::Next(), L"пїЅпїЅпїЅпїЅпїЅпїЅ");
             matBrick->CostPerSquareMeter = 1200.0;
             matBrick->DisplayColor = Windows::UI::ColorHelper::FromArgb(255, 160, 90, 60);
             m_materials.push_back(matBrick);
 
-            auto matConcrete = std::make_shared<Material>(IdGenerator::Next(), L"Бетон");
+            auto matConcrete = std::make_shared<Material>(IdGenerator::Next(), L"пїЅпїЅпїЅпїЅпїЅ");
             matConcrete->CostPerSquareMeter = 900.0;
             matConcrete->DisplayColor = Windows::UI::ColorHelper::FromArgb(255, 120, 120, 120);
             m_materials.push_back(matConcrete);
 
-            auto matFinish = std::make_shared<Material>(IdGenerator::Next(), L"Штукатурка");
+            auto matFinish = std::make_shared<Material>(IdGenerator::Next(), L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             matFinish->CostPerSquareMeter = 250.0;
             matFinish->DisplayColor = Windows::UI::ColorHelper::FromArgb(255, 210, 210, 210);
             m_materials.push_back(matFinish);
 
-            // Типы стен
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             {
-                auto type = std::make_shared<WallType>(L"Внутренняя 100 (бетон)");
-                type->AddLayer(WallLayer(L"Несущий", 100.0, matConcrete));
+                auto type = std::make_shared<WallType>(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 100 (пїЅпїЅпїЅпїЅпїЅ)");
+                type->AddLayer(WallLayer(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 100.0, matConcrete));
                 m_wallTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<WallType>(L"Несущая 250 (кирпич)");
-                type->AddLayer(WallLayer(L"Несущий", 250.0, matBrick));
+                auto type = std::make_shared<WallType>(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 250 (пїЅпїЅпїЅпїЅпїЅпїЅ)");
+                type->AddLayer(WallLayer(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 250.0, matBrick));
                 m_wallTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<WallType>(L"С отделкой 150+20+20");
-                type->AddLayer(WallLayer(L"Несущий", 150.0, matBrick));
-                type->AddLayer(WallLayer(L"Отделка", 20.0, matFinish));
-                type->AddLayer(WallLayer(L"Отделка", 20.0, matFinish));
+                auto type = std::make_shared<WallType>(L"пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 150+20+20");
+                type->AddLayer(WallLayer(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 150.0, matBrick));
+                type->AddLayer(WallLayer(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 20.0, matFinish));
+                type->AddLayer(WallLayer(L"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", 20.0, matFinish));
                 m_wallTypes.push_back(type);
             }
 
-            // R4: Типы дверей
+            // R4: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             {
-                auto type = std::make_shared<DoorType>(L"Дверь 900?2100", 900.0, 2100.0, DoorSwingType::RightInward);
+                auto type = std::make_shared<DoorType>(L"пїЅпїЅпїЅпїЅпїЅ 900?2100", 900.0, 2100.0, DoorSwingType::RightInward);
                 type->SetUnitCost(15000.0);
                 m_doorTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<DoorType>(L"Дверь 800?2100", 800.0, 2100.0, DoorSwingType::RightInward);
+                auto type = std::make_shared<DoorType>(L"пїЅпїЅпїЅпїЅпїЅ 800?2100", 800.0, 2100.0, DoorSwingType::RightInward);
                 type->SetUnitCost(12000.0);
                 m_doorTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<DoorType>(L"Дверь двустворчатая 1400?2100", 1400.0, 2100.0, DoorSwingType::DoubleInward);
+                auto type = std::make_shared<DoorType>(L"пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1400?2100", 1400.0, 2100.0, DoorSwingType::DoubleInward);
                 type->SetUnitCost(25000.0);
                 m_doorTypes.push_back(type);
             }
 
-            // R4: Типы окон
+            // R4: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             {
-                auto type = std::make_shared<WindowType_>(L"Окно 1200?1400", 1200.0, 1400.0, 900.0, WindowType::Double);
+                auto type = std::make_shared<WindowType_>(L"пїЅпїЅпїЅпїЅ 1200?1400", 1200.0, 1400.0, 900.0, WindowType::Double);
                 type->SetCostPerSqM(8000.0);
                 m_windowTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<WindowType_>(L"Окно 1500?1400", 1500.0, 1400.0, 900.0, WindowType::Triple);
+                auto type = std::make_shared<WindowType_>(L"пїЅпїЅпїЅпїЅ 1500?1400", 1500.0, 1400.0, 900.0, WindowType::Triple);
                 type->SetCostPerSqM(8500.0);
                 m_windowTypes.push_back(type);
             }
             {
-                auto type = std::make_shared<WindowType_>(L"Окно панорамное 2400?2100", 2400.0, 2100.0, 300.0, WindowType::Panoramic);
+                auto type = std::make_shared<WindowType_>(L"пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 2400?2100", 2400.0, 2100.0, 300.0, WindowType::Panoramic);
                 type->SetCostPerSqM(12000.0);
                 m_windowTypes.push_back(type);
             }
@@ -128,11 +126,11 @@ namespace winrt::estimate1
             return m_wallTypes.empty() ? nullptr : m_wallTypes.front();
         }
 
-        // Добавление стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         Wall* AddWall(const WorldPoint& start, const WorldPoint& end, double thickness = 150.0)
         {
             auto wall = std::make_unique<Wall>(start, end, thickness);
-            // Если есть дефолтный тип стены, назначаем его.
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ.
             if (auto t = GetDefaultWallType())
             {
                 wall->SetType(t);
@@ -140,12 +138,12 @@ namespace winrt::estimate1
             Wall* ptr = wall.get();
             m_walls.push_back(std::move(wall));
 
-            // M3.5: пересчитываем авторазмеры после добавления стены.
+            // M3.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
             RebuildAutoDimensions();
             return ptr;
         }
 
-        // Удаление стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         bool RemoveWall(uint64_t id)
         {
             auto it = std::find_if(m_walls.begin(), m_walls.end(),
@@ -153,7 +151,7 @@ namespace winrt::estimate1
             
             if (it != m_walls.end())
             {
-                // Если удаляем выбранный элемент — очистить выбор, чтобы не оставить висячий указатель
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (m_selectedElement == it->get())
                     m_selectedElement = nullptr;
 
@@ -164,7 +162,7 @@ namespace winrt::estimate1
             return false;
         }
 
-        // R2.5: Разделить стену (Split)
+        // R2.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (Split)
         bool SplitWall(uint64_t wallId, const WorldPoint& splitPt)
         {
             Wall* original = GetWall(wallId);
@@ -173,7 +171,7 @@ namespace winrt::estimate1
             WorldPoint start = original->GetStartPoint();
             WorldPoint end = original->GetEndPoint();
 
-            // Создаем две новые стены
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             auto w1 = std::make_unique<Wall>(start, splitPt, original->GetThickness());
             w1->SetType(original->GetType());
             w1->SetWorkState(original->GetWorkState());
@@ -184,7 +182,7 @@ namespace winrt::estimate1
             w2->SetWorkState(original->GetWorkState());
             w2->SetHeight(original->GetHeight());
 
-            // Удаляем старую (без rebuild пока)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ rebuild пїЅпїЅпїЅпїЅ)
             auto it = std::find_if(m_walls.begin(), m_walls.end(),
                 [wallId](const std::unique_ptr<Wall>& w) { return w->GetId() == wallId; });
             if (it != m_walls.end())
@@ -193,7 +191,7 @@ namespace winrt::estimate1
                 m_walls.erase(it);
             }
 
-            // Добавляем новые
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             m_walls.push_back(std::move(w1));
             m_walls.push_back(std::move(w2));
 
@@ -201,7 +199,7 @@ namespace winrt::estimate1
             return true;
         }
 
-        // R2.5: Обрезать/Удлинить (Trim/Extend)
+        // R2.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Trim/Extend)
         bool TrimExtendWall(uint64_t wallId, const WorldPoint& newStart, const WorldPoint& newEnd)
         {
             Wall* wall = GetWall(wallId);
@@ -214,7 +212,7 @@ namespace winrt::estimate1
             return true;
         }
 
-        // Получение стены по ID
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ ID
         Wall* GetWall(uint64_t id)
         {
             auto it = std::find_if(m_walls.begin(), m_walls.end(),
@@ -223,16 +221,16 @@ namespace winrt::estimate1
             return (it != m_walls.end()) ? it->get() : nullptr;
         }
 
-        // Получение всех стен
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         const std::vector<std::unique_ptr<Wall>>& GetWalls() const { return m_walls; }
 
-        // Помещения (R5)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (R5)
         const std::vector<std::shared_ptr<Room>>& GetRooms() const { return m_rooms; }
 
-                // Количество стен
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 size_t GetWallCount() const { return m_walls.size(); }
 
-                // Очистка модели
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 void Clear()
                 {
                     m_walls.clear();
@@ -245,13 +243,13 @@ namespace winrt::estimate1
                     m_selectedElement = nullptr;
                 }
 
-                // Размеры (авто)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ)
                 const std::vector<std::unique_ptr<Dimension>>& GetDimensions() const { return m_dimensions; }
 
-                // Ручные размеры
+                // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 const std::vector<std::unique_ptr<Dimension>>& GetManualDimensions() const { return m_manualDimensions; }
 
-                // Добавить ручной размер
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 Dimension* AddManualDimension(const WorldPoint& p1, const WorldPoint& p2, double offset = 200.0)
                 {
                     auto dim = std::make_unique<Dimension>(p1, p2);
@@ -262,7 +260,7 @@ namespace winrt::estimate1
                     return ptr;
                 }
 
-                // Удалить ручной размер
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 bool RemoveManualDimension(uint64_t id)
                 {
                     auto it = std::find_if(m_manualDimensions.begin(), m_manualDimensions.end(),
@@ -279,7 +277,7 @@ namespace winrt::estimate1
                     return false;
                 }
 
-                // Цепочки размеров
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 const std::vector<std::unique_ptr<DimensionChain>>& GetDimensionChains() const { return m_dimensionChains; }
 
                 DimensionChain* AddDimensionChain()
@@ -297,7 +295,7 @@ namespace winrt::estimate1
                     return (it != m_dimensionChains.end()) ? it->get() : nullptr;
                 }
 
-                // Флаг автоматических размеров
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 bool IsAutoDimensionsEnabled() const { return m_autoDimensionsEnabled; }
                 void SetAutoDimensionsEnabled(bool enabled)
                 {
@@ -308,20 +306,20 @@ namespace winrt::estimate1
                     }
                     else
                     {
-                        // Сохраняем только ручные размеры, авто очищаем
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         m_dimensions.clear();
                     }
                 }
 
                 void RebuildAutoDimensions()
                 {
-            // R5.1: перед пересчётом размеров обновляем помещения
+            // R5.1: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             RebuildRooms();
 
                     if (!m_autoDimensionsEnabled)
                         return;
 
-                    // Сохраняем настройки заблокированных размеров (offset)
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (offset)
                     struct LockedState
                     {
                         bool isLocked{ false };
@@ -332,15 +330,15 @@ namespace winrt::estimate1
                     
                     for (const auto& d : m_dimensions)
                     {
-                        // Сохраняем offset если хотя бы один размер стены заблокирован
-                        // Для цепочки они все должны быть одинаковыми
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ offset пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                        // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         if (d && d->IsLocked())
                         {
                             lockedByWall[d->GetOwnerWallId()] = LockedState{ true, d->GetOffset() };
                         }
                     }
 
-                    // Загруженные из файла состояния (если были сохранены только offset'ы)
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ offset'пїЅ)
                     for (const auto& kv : m_loadedAutoDimensionStates)
                     {
                         lockedByWall[kv.first] = LockedState{ true, kv.second };
@@ -361,11 +359,11 @@ namespace winrt::estimate1
                         WorldPoint end = w->GetEndPoint();
                         WorldPoint dir = w->GetDirection();
 
-                        // 1. Собираем проёмы
+                        // 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                         struct OpSegment { double start; double end; };
                         std::vector<OpSegment> ops;
 
-                        // Двери
+                        // пїЅпїЅпїЅпїЅпїЅ
                         for (const auto& d : m_doors) {
                             if (d && d->GetHostWallId() == w->GetId()) {
                                 double center = d->GetPositionOnWall() * len;
@@ -373,7 +371,7 @@ namespace winrt::estimate1
                                 ops.push_back({ center - half, center + half });
                             }
                         }
-                        // Окна
+                        // пїЅпїЅпїЅпїЅ
                         for (const auto& win : m_windows) {
                             if (win && win->GetHostWallId() == w->GetId()) {
                                 double center = win->GetPositionOnWall() * len;
@@ -386,7 +384,7 @@ namespace winrt::estimate1
                             return a.start < b.start; 
                         });
 
-                        // Определяем смещение
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         double offset = w->GetThickness() / 2.0 + 300.0;
                         bool isLocked = false;
                         
@@ -399,7 +397,7 @@ namespace winrt::estimate1
 
                         if (ops.empty())
                         {
-                            // Один общий размер
+                            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                             auto dim = std::make_unique<Dimension>(
                                 w->GetId(),
                                 start,
@@ -412,7 +410,7 @@ namespace winrt::estimate1
                         }
                         else
                         {
-                            // Цепочка размеров
+                            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                             auto chain = std::make_unique<DimensionChain>();
                             chain->SetOffset(offset);
                             // TODO: Add logic to chain to sync locked state? 
@@ -427,7 +425,7 @@ namespace winrt::estimate1
                                 d->SetOffset(offset);
                                 d->SetLocked(isLocked);
                                 
-                                // Устанавливаем связь с цепочкой
+                                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                                 d->SetChainId(chain->GetId());
                                 chain->AddDimensionId(d->GetId());
                                 
@@ -438,52 +436,52 @@ namespace winrt::estimate1
                                 double s = std::clamp(op.start, 0.0, len);
                                 double e = std::clamp(op.end, 0.0, len);
                                 
-                                // Сегмент до проёма
+                                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                                 addDim(cur, s, DimensionType::WallSegment);
                                 
-                                // Проём
+                                // пїЅпїЅпїЅпїЅ
                                 addDim(s, e, DimensionType::OpeningWidth);
                                 
                                 cur = e;
                             }
                             
-                            // Сегмент после последнего проёма
+                            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                             addDim(cur, len, DimensionType::WallSegment);
                             
                             m_dimensionChains.push_back(std::move(chain));
                         }
                     }
 
-                    // После перестроения очищаем загруженные состояния
+                    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     m_loadedAutoDimensionStates.clear();
                 }
 
-                // Загрузить сохранённое состояние авторазмеров (offset по стене)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (offset пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
                 void LoadAutoDimensionState(uint64_t wallId, double offset)
                 {
                     m_loadedAutoDimensionStates[wallId] = offset;
                 }
 
-                // Выбранный элемент
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 Element* GetSelectedElement() const { return m_selectedElement; }
         
                 void SetSelectedElement(Element* element)
                 {
-                    // Снимаем выделение с предыдущего
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (m_selectedElement)
                         m_selectedElement->SetSelected(false);
 
                     m_selectedElement = element;
 
-                    // Устанавливаем выделение на новый
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     if (m_selectedElement)
                         m_selectedElement->SetSelected(true);
                 }
 
-                // Поиск элемента в точке (для выделения кликом)
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
                 Element* HitTest(const WorldPoint& point, double tolerance, const LayerManager& layerManager)
                 {
-                    // Сначала ручные размеры (самый верхний слой)
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                     for (auto it = m_manualDimensions.rbegin(); it != m_manualDimensions.rend(); ++it)
                     {
                         Dimension* dim = it->get();
@@ -491,7 +489,7 @@ namespace winrt::estimate1
                             return dim;
                     }
 
-                    // Затем авторазмеры
+                    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     for (auto it = m_dimensions.rbegin(); it != m_dimensions.rend(); ++it)
                     {
                         Dimension* dim = it->get();
@@ -499,7 +497,7 @@ namespace winrt::estimate1
                             return dim;
                     }
 
-                    // R4: Проверяем двери
+                    // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     for (auto it = m_doors.rbegin(); it != m_doors.rend(); ++it)
                     {
                         Door* door = it->get();
@@ -507,7 +505,7 @@ namespace winrt::estimate1
                             return door;
                     }
 
-                    // R4: Проверяем окна
+                    // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                     for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
                     {
                         Window* window = it->get();
@@ -515,24 +513,24 @@ namespace winrt::estimate1
                             return window;
                     }
 
-                    // R6.1: Проверяем колонны (поверх стен)
+                    // R6.1: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                     for (auto it = m_columns.rbegin(); it != m_columns.rend(); ++it)
                     {
                         if (it->get()->HitTest(point, tolerance)) return it->get();
                     }
                     
-                    // R6.5: Проверяем балки (поверх стен)
+                    // R6.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                     for (auto it = m_beams.rbegin(); it != m_beams.rend(); ++it)
                     {
                         if (it->get()->HitTest(point, tolerance)) return it->get();
                     }
 
-                    // Проверяем стены в обратном порядке (сверху вниз)
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
                     for (auto it = m_walls.rbegin(); it != m_walls.rend(); ++it)
                     {
                         Wall* wall = it->get();
                 
-                        // Проверяем видимость слоя
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                         if (!layerManager.IsWorkStateVisible(wall->GetWorkState()))
                             continue;
 
@@ -540,13 +538,13 @@ namespace winrt::estimate1
                             return wall;
                     }
 
-                    // R6.2: Проверяем перекрытия (под стенами, но над помещениями)
+                    // R6.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                     for (auto it = m_slabs.rbegin(); it != m_slabs.rend(); ++it)
                     {
                         if (it->get()->HitTest(point, tolerance)) return it->get();
                     }
 
-                    // R5.2: Проверяем помещения (последние — они под стенами)
+                    // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                     for (auto it = m_rooms.rbegin(); it != m_rooms.rend(); ++it)
                     {
                         Room* room = it->get();
@@ -557,7 +555,7 @@ namespace winrt::estimate1
                     return nullptr;
                 }
 
-                // Снять выделение со всех элементов
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 void ClearSelection()
                 {
                     for (auto& wall : m_walls)
@@ -576,7 +574,7 @@ namespace winrt::estimate1
                     m_selectedElement = nullptr;
                 }
 
-        // Проверка, что элемент всё ещё хранится в документе (защита от висячих указателей)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         bool IsElementAlive(const Element* element) const
         {
             if (!element)
@@ -597,11 +595,11 @@ namespace winrt::estimate1
             for (const auto& w : m_windows)
                 if (w.get() == element) return true;
 
-            // R5.2: Проверяем помещения
+            // R5.2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             for (const auto& r : m_rooms)
                 if (r.get() == element) return true;
 
-            // R6: Конструкции
+            // R6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             for (const auto& c : m_columns)
                 if (c.get() == element) return true;
             for (const auto& s : m_slabs)
@@ -613,23 +611,23 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // Управление типами стен (M6 - Wall Type Editor)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (M6 - Wall Type Editor)
         // =====================================================================
 
-        // Добавить новый тип стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void AddWallType(std::shared_ptr<WallType> wallType)
         {
             if (!wallType) return;
-            // Проверка на дубликат по имени
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             for (const auto& wt : m_wallTypes)
             {
                 if (wt && wt->GetName() == wallType->GetName())
-                    return; // Тип с таким именем уже существует
+                    return; // пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
             m_wallTypes.push_back(wallType);
         }
 
-        // Удалить тип стены по имени
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         bool RemoveWallType(const std::wstring& name)
         {
             auto it = std::find_if(m_wallTypes.begin(), m_wallTypes.end(),
@@ -637,7 +635,7 @@ namespace winrt::estimate1
             
             if (it != m_wallTypes.end())
             {
-                // Отвязываем стены от удаляемого типа
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 for (auto& wall : m_walls)
                 {
                     if (wall && wall->GetType() && wall->GetType()->GetName() == name)
@@ -652,23 +650,23 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // Управление материалами (M6 - Wall Type Editor)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (M6 - Wall Type Editor)
         // =====================================================================
 
-        // Добавить новый материал
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void AddMaterial(std::shared_ptr<Material> material)
         {
             if (!material) return;
-            // Проверка на дубликат по имени
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             for (const auto& mat : m_materials)
             {
                 if (mat && mat->Name == material->Name)
-                    return; // Материал с таким именем уже существует
+                    return; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
             m_materials.push_back(material);
         }
 
-        // Удалить материал по имени
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         bool RemoveMaterial(const std::wstring& name)
         {
             auto it = std::find_if(m_materials.begin(), m_materials.end(),
@@ -676,7 +674,7 @@ namespace winrt::estimate1
             
             if (it != m_materials.end())
             {
-                // Убираем ссылки на материал из слоёв типов стен
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 for (auto& wt : m_wallTypes)
                 {
                     if (!wt) continue;
@@ -694,7 +692,7 @@ namespace winrt::estimate1
             return false;
         }
 
-        // Получить материал по имени
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         std::shared_ptr<Material> GetMaterialByName(const std::wstring& name) const
         {
             auto it = std::find_if(m_materials.begin(), m_materials.end(),
@@ -703,17 +701,17 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // R4: Управление дверями
+        // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
-        // Добавить дверь
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         Door* AddDoor(std::shared_ptr<Door> door)
         {
             if (!door) return nullptr;
             Door* ptr = door.get();
             m_doors.push_back(door);
             
-            // Обновить кэш позиции
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (Wall* hostWall = GetWall(door->GetHostWallId()))
             {
                 door->UpdateCachedPosition(*hostWall);
@@ -722,7 +720,7 @@ namespace winrt::estimate1
             return ptr;
         }
 
-        // Удалить дверь
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         bool RemoveDoor(uint64_t id)
         {
             auto it = std::find_if(m_doors.begin(), m_doors.end(),
@@ -738,7 +736,7 @@ namespace winrt::estimate1
             return false;
         }
 
-        // Получить дверь по ID
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ ID
         Door* GetDoor(uint64_t id)
         {
             auto it = std::find_if(m_doors.begin(), m_doors.end(),
@@ -746,10 +744,10 @@ namespace winrt::estimate1
             return (it != m_doors.end()) ? it->get() : nullptr;
         }
 
-        // Получить все двери
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         const std::vector<std::shared_ptr<Door>>& GetDoors() const { return m_doors; }
 
-        // Получить двери для конкретной стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         std::vector<Door*> GetDoorsForWall(uint64_t wallId)
         {
             std::vector<Door*> result;
@@ -762,17 +760,17 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // R4: Управление окнами
+        // R4: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
-        // Добавить окно
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         Window* AddWindow(std::shared_ptr<Window> window)
         {
             if (!window) return nullptr;
             Window* ptr = window.get();
             m_windows.push_back(window);
             
-            // Обновить кэш позиции
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (Wall* hostWall = GetWall(window->GetHostWallId()))
             {
                 window->UpdateCachedPosition(*hostWall);
@@ -781,7 +779,7 @@ namespace winrt::estimate1
             return ptr;
         }
 
-        // Удалить окно
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         bool RemoveWindow(uint64_t id)
         {
             auto it = std::find_if(m_windows.begin(), m_windows.end(),
@@ -797,7 +795,7 @@ namespace winrt::estimate1
             return false;
         }
 
-        // Получить окно по ID
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ ID
         Window* GetWindow(uint64_t id)
         {
             auto it = std::find_if(m_windows.begin(), m_windows.end(),
@@ -805,10 +803,10 @@ namespace winrt::estimate1
             return (it != m_windows.end()) ? it->get() : nullptr;
         }
 
-        // Получить все окна
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         const std::vector<std::shared_ptr<Window>>& GetWindows() const { return m_windows; }
 
-        // Получить окна для конкретной стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         std::vector<Window*> GetWindowsForWall(uint64_t wallId)
         {
             std::vector<Window*> result;
@@ -820,12 +818,9 @@ namespace winrt::estimate1
             return result;
         }
 
-        // Настройки соединений (R2.6)
-        const JoinSettings& GetJoinSettings() const { return m_joinSettings; }
-        void SetJoinSettings(const JoinSettings& settings) { m_joinSettings = settings; }
 
         // =====================================================================
-        // R4: Типы дверей и окон
+        // R4: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
         // =====================================================================
 
         const std::vector<std::shared_ptr<DoorType>>& GetDoorTypes() const { return m_doorTypes; }
@@ -852,7 +847,7 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // Обновление кэшей при изменении стен
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         // =====================================================================
 
         void UpdateOpeningPositions()
@@ -873,7 +868,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Удалить все проёмы при удалении стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void RemoveOpeningsForWall(uint64_t wallId)
         {
             m_doors.erase(
@@ -889,18 +884,18 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // R5.1: Распознавание помещений
+        // R5.1: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
         void RebuildRooms()
         {
             m_rooms = RoomDetector::DetectRooms(m_walls);
-            // R5.5: Пересобираем зоны после обновления помещений
+            // R5.5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             RebuildZones();
         }
 
         // =====================================================================
-        // R5.5: Зоны
+        // R5.5: пїЅпїЅпїЅпїЅ
         // =====================================================================
 
         void RebuildZones()
@@ -922,7 +917,7 @@ namespace winrt::estimate1
         }
 
         // =====================================================================
-        // R6: Колонны и перекрытия
+        // R6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================================
 
         void AddColumn(std::shared_ptr<Column> column)
@@ -955,34 +950,32 @@ namespace winrt::estimate1
 
             private:
                 std::vector<std::unique_ptr<Wall>> m_walls;
-                std::vector<std::unique_ptr<Dimension>> m_dimensions;         // Авторазмеры
-                std::vector<std::unique_ptr<Dimension>> m_manualDimensions;   // Ручные размеры
+                std::vector<std::unique_ptr<Dimension>> m_dimensions;         // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                std::vector<std::unique_ptr<Dimension>> m_manualDimensions;   // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 std::vector<std::unique_ptr<DimensionChain>> m_dimensionChains;
-                std::vector<std::shared_ptr<Room>> m_rooms;                   // R5: Помещения
-                ZoneManager m_zoneManager;                                    // R5.5: Зоны
+                std::vector<std::shared_ptr<Room>> m_rooms;                   // R5: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                ZoneManager m_zoneManager;                                    // R5.5: пїЅпїЅпїЅпїЅ
                 Element* m_selectedElement{ nullptr };
                 bool m_autoDimensionsEnabled{ true };
 
-                // Каталоги M3.1
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ M3.1
                 std::vector<std::shared_ptr<Material>> m_materials;
                 std::vector<std::shared_ptr<WallType>> m_wallTypes;
 
-                // R4: Двери и окна
+                // R4: пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
                 std::vector<std::shared_ptr<Door>> m_doors;
                 std::vector<std::shared_ptr<Window>> m_windows;
 
-                // R6: Конструкции
+                // R6: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 std::vector<std::shared_ptr<Column>> m_columns;
                 std::vector<std::shared_ptr<Slab>> m_slabs;
                 std::vector<std::shared_ptr<Beam>> m_beams;
                 std::vector<std::shared_ptr<DoorType>> m_doorTypes;
                 std::vector<std::shared_ptr<WindowType_>> m_windowTypes;
 
-                // Сохранённые состояния авторазмеров из файла (offset по стене)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (offset пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
                 std::unordered_map<uint64_t, double> m_loadedAutoDimensionStates;
 
-                // Настройки соединений стен
-                JoinSettings m_joinSettings;
             };
         }
 

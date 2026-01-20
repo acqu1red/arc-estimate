@@ -3,12 +3,11 @@
 #include "pch.h"
 #include "Element.h"
 #include "Camera.h"
-#include "WallJoinManager.h"
 
 namespace winrt::estimate1
 {
     // =====================================================
-    // ИНСТРУМЕНТ TRIM/EXTEND (ОБРЕЗАТЬ/УДЛИНИТЬ)
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ TRIM/EXTEND (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     // =====================================================
     enum class TrimExtendState
     {
@@ -39,8 +38,8 @@ namespace winrt::estimate1
 
             if (m_state == TrimExtendState::PickBoundary)
             {
-                // Ищем стену-границу
-                // Используем HitTest документа, но нам нужен ID и тип
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HitTest пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ ID пїЅ пїЅпїЅпїЅ
                 Element* hit = document.HitTest(worldPos, tolerance, layerManager);
                 Wall* wall = dynamic_cast<Wall*>(hit);
                 
@@ -86,16 +85,16 @@ namespace winrt::estimate1
             Wall* boundary = document.GetWall(m_boundaryWallId);
             if (!boundary || !subject) return;
 
-            // 1. Найти пересечение прямых
+            // 1. пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             WorldPoint b1 = boundary->GetStartPoint();
             WorldPoint b2 = boundary->GetEndPoint();
             WorldPoint s1 = subject->GetStartPoint();
             WorldPoint s2 = subject->GetEndPoint();
 
             double det = (b2.X - b1.X) * (s2.Y - s1.Y) - (s2.X - s1.X) * (b2.Y - b1.Y);
-            if (std::abs(det) < 0.001) return; // Параллельны
+            if (std::abs(det) < 0.001) return; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-            // Используем формулу пересечения
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             // (Px, Py) = P1 + t(P2 - P1)
             
             // Line1: B1 + t(B2-B1)
@@ -125,29 +124,29 @@ namespace winrt::estimate1
             
             WorldPoint intersection(b1.X + dxB * t1, b1.Y + dyB * t1);
 
-            // 2. Определить какую часть оставить
-            // Проецируем точку клика на subject
+            // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ subject
             double distStart = pickPt.Distance(s1);
             double distEnd = pickPt.Distance(s2);
             
-            // Логика Revit: кликаем на ту часть, которую ОСТАВЛЯЕМ.
-            // Значит дальнюю точку двигаем к пересечению.
+            // пїЅпїЅпїЅпїЅпїЅпїЅ Revit: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
             
             if (distStart < distEnd) 
             {
-                // Клик ближе к Start => Keep Start => Move End to Intersection
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ Start => Keep Start => Move End to Intersection
                 document.TrimExtendWall(subject->GetId(), s1, intersection);
             }
             else
             {
-                // Клик ближе к End => Keep End => Move Start to Intersection
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ End => Keep End => Move Start to Intersection
                 document.TrimExtendWall(subject->GetId(), intersection, s2);
             }
         }
     };
 
     // =====================================================
-    // ИНСТРУМЕНТ SPLIT (РАЗДЕЛИТЬ)
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SPLIT (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     // =====================================================
     class SplitTool
     {
@@ -165,11 +164,11 @@ namespace winrt::estimate1
 
             if (wall)
             {
-                // Проецируем точку на стену
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 WorldPoint s = wall->GetStartPoint();
                 WorldPoint e = wall->GetEndPoint();
                 
-                // Проекция worldPos на отрезок s-e
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ worldPos пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ s-e
                 double dx = e.X - s.X;
                 double dy = e.Y - s.Y;
                 double len2 = dx * dx + dy * dy;
