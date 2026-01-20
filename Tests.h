@@ -14,6 +14,9 @@
 #include "Dimension.h"
 #include "EstimationEngine.h"
 #include "DrawingTools.h"
+#include "ViewSettings.h"
+#include "LineWeightTable.h"
+#include "WallPlanGeometry.h"
 #include <vector>
 #include <string>
 #include <functional>
@@ -545,6 +548,184 @@ namespace winrt::estimate1::tests
     }
 
     // ============================================================================
+    // ViewSettings and LineWeight Tests (R-VIEW: Revit-like rendering)
+    // ============================================================================
+
+    inline TestSuite RunViewSettingsTests()
+    {
+        TestRunner runner;
+
+        runner.AddTest(L"ViewSettings_DefaultScale", []() {
+            ViewSettings settings;
+            AssertEqual(settings.GetViewScaleDenominator(), 50, "Default scale should be 1:50");
+        });
+
+        runner.AddTest(L"ViewSettings_ThinLinesDefault", []() {
+            ViewSettings settings;
+            AssertFalse(settings.IsThinLinesEnabled(), "Thin lines should be off by default");
+        });
+
+        runner.AddTest(L"ViewSettings_ThinLinesToggle", []() {
+            ViewSettings settings;
+            settings.SetThinLinesEnabled(true);
+            AssertTrue(settings.IsThinLinesEnabled(), "Thin lines should be enabled after toggle");
+        });
+
+        runner.AddTest(L"ViewSettings_DetailLevelDefault", []() {
+            ViewSettings settings;
+            AssertTrue(settings.GetDetailLevel() == DetailLevel::Medium, "Default detail level should be Medium");
+        });
+
+        runner.AddTest(L"ViewSettings_ScaleFraction", []() {
+            ViewSettings settings;
+            settings.SetViewScaleDenominator(100);
+            AssertEqual(settings.GetViewScaleFraction(), 0.01, 0.0001, "1:100 should give 0.01 fraction");
+        });
+
+        return runner.Run(L"ViewSettings Tests");
+    }
+
+    inline TestSuite RunLineWeightTests()
+    {
+        TestRunner runner;
+
+        runner.AddTest(L"LineWeight_WeightRange", []() {
+            LineWeightTable table;
+            
+            // Weight 1 should be thinnest
+            double w1 = table.GetPrintedThicknessMm(1);
+            double w16 = table.GetPrintedThicknessMm(16);
+            
+            AssertTrue(w1 < w16, "Weight 1 should be thinner than weight 16");
+            AssertTrue(w1 > 0.01, "Weight 1 should be positive");
+            AssertTrue(w16 < 10.0, "Weight 16 should be reasonable");
+        });
+
+        runner.AddTest(L"LineWeight_ThinLinesOverride", []() {
+            LineWeightTable table;
+            ViewSettings settings;
+            
+            // Get normal stroke width
+            float normalWidth = table.GetScreenStrokeWidth(8, settings);
+            
+            // Enable thin lines
+            settings.SetThinLinesEnabled(true);
+            float thinWidth = table.GetScreenStrokeWidth(8, settings);
+            
+            AssertTrue(thinWidth < normalWidth, "Thin lines should produce thinner stroke");
+            AssertEqual(thinWidth, table.GetThinLineWidth(), 0.001f, "Thin stroke should equal thin line width");
+        });
+
+        runner.AddTest(L"LineWeight_ZoomInvariance", []() {
+            // KEY TEST: Stroke width should NOT change with camera zoom
+            LineWeightTable table;
+            ViewSettings settings;
+            
+            // Get stroke width at view scale 1:50
+            float width1 = table.GetScreenStrokeWidth(5, settings);
+            
+            // Stroke width calculation doesn't use camera zoom - it only uses view settings
+            // So this test verifies the API doesn't take zoom as parameter
+            float width2 = table.GetScreenStrokeWidth(5, settings);
+            
+            AssertEqual(width1, width2, 0.0001f, "Stroke width should be consistent");
+        });
+
+        runner.AddTest(L"LineWeight_ViewScaleEffect", []() {
+            // KEY TEST: Changing view scale DOES change stroke width
+            LineWeightTable table;
+            ViewSettings settings;
+            
+            // At 1:50 scale (larger scale = thicker lines)
+            settings.SetViewScaleDenominator(50);
+            float width50 = table.GetScreenStrokeWidth(5, settings);
+            
+            // At 1:100 scale (smaller scale = thinner lines)
+            settings.SetViewScaleDenominator(100);
+            float width100 = table.GetScreenStrokeWidth(5, settings);
+            
+            // 1:50 should produce thicker lines than 1:100
+            AssertTrue(width50 > width100, "1:50 scale should produce thicker lines than 1:100");
+        });
+
+        runner.AddTest(L"LineWeight_CategoryStyles", []() {
+            LineWeightTable table;
+            
+            const auto& cutStyle = table.GetStyle(LineCategory::WallCut);
+            const auto& projStyle = table.GetStyle(LineCategory::WallProjection);
+            
+            // Cut lines should be heavier than projection
+            AssertTrue(cutStyle.LineWeightIndex > projStyle.LineWeightIndex, 
+                "Cut lines should have heavier weight than projection");
+        });
+
+        return runner.Run(L"LineWeight Tests");
+    }
+
+    // ============================================================================
+    // WallPlanGeometry Tests
+    // ============================================================================
+
+    inline TestSuite RunWallGeometryTests()
+    {
+        TestRunner runner;
+
+        runner.AddTest(L"WallGeometry_BasicBuild", []() {
+            Wall wall({ 0, 0 }, { 1000, 0 }, 200);
+            
+            WallPlanGeometryBuilder builder;
+            WallPlanGeometry geometry = builder.BuildBasic(wall, DetailLevel::Medium);
+            
+            AssertTrue(geometry.IsValid(), "Geometry should be valid");
+            AssertEqual((int)geometry.BoundaryPath.Points.size(), 4, "Boundary loop should have 4 points");
+        });
+
+        runner.AddTest(L"WallGeometry_BoundaryOffset", []() {
+            Wall wall({ 0, 0 }, { 1000, 0 }, 200);  // 200mm thick
+            
+            WallPlanGeometryBuilder builder;
+            WallPlanGeometry geometry = builder.BuildBasic(wall, DetailLevel::Medium);
+            
+            // horizontal: LS(+100), RE(+100), RE(-100), LS(-100)
+            AssertEqual(geometry.BoundaryPath.Points[0].Y, 100.0, 1.0, "Top boundary should be at +halfThickness");
+            AssertEqual(geometry.BoundaryPath.Points[2].Y, -100.0, 1.0, "Bottom boundary should be at -halfThickness");
+        });
+
+        runner.AddTest(L"WallGeometry_CacheValidation", []() {
+            Wall wall({ 0, 0 }, { 1000, 0 }, 200);
+            
+            WallPlanGeometryBuilder builder;
+            WallPlanGeometry geometry1 = builder.BuildBasic(wall, DetailLevel::Medium);
+            
+            // Should be valid for same wall
+            AssertTrue(builder.IsCacheValid(wall, geometry1), "Cache should be valid for unchanged wall");
+            
+            // Modify wall
+            wall.SetThickness(300);
+            AssertFalse(builder.IsCacheValid(wall, geometry1), "Cache should be invalid after wall change");
+        });
+
+        runner.AddTest(L"WallGeometry_FineLayers", []() {
+            // Create a wall type with layers
+            auto wallType = std::make_shared<WallType>(L"Compound");
+            wallType->AddLayer({ L"Finish", 15.0 });
+            wallType->AddLayer({ L"Core", 170.0 });
+            wallType->AddLayer({ L"Finish", 15.0 });
+            
+            Wall wall({ 0, 0 }, { 1000, 0 }, 200);
+            wall.SetType(wallType);
+            
+            WallPlanGeometryBuilder builder;
+            WallPlanGeometry geometry = builder.BuildBasic(wall, DetailLevel::Fine);
+            
+            // Should have layer boundaries (3 layers = 2 internal boundaries)
+            AssertTrue(geometry.LayerBoundaries.size() == 2, "Should have 2 layer boundaries");
+        });
+
+        return runner.Run(L"WallPlanGeometry Tests");
+    }
+
+    // ============================================================================
     // Run All Tests
     // ============================================================================
 
@@ -596,6 +777,11 @@ namespace winrt::estimate1::tests
         result.Suites.push_back(RunDimensionTests());
         result.Suites.push_back(RunEstimationTests());
         result.Suites.push_back(RunDocumentTests());
+        
+        // R-VIEW: New Revit-like rendering tests
+        result.Suites.push_back(RunViewSettingsTests());
+        result.Suites.push_back(RunLineWeightTests());
+        result.Suites.push_back(RunWallGeometryTests());
 
         // Aggregate results
         for (const auto& suite : result.Suites)

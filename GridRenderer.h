@@ -195,6 +195,6 @@ namespace winrt::estimate1
         float m_majorLineWidth{ 1.0f };
         float m_axisLineWidth{ 1.5f };
 
-        bool m_showAxes{ true };
+        bool m_showAxes{ false };
     };
 }

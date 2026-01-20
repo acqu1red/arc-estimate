@@ -438,7 +438,7 @@
                                 </ToggleButton>
                                 <CheckBox x:Name="GridToggle"
                                           Content="Сетка"
-                                          IsChecked="True"
+                                          IsChecked="False"
                                           Checked="OnGridToggleClick"
                                           Unchecked="OnGridToggleClick"
                                           Visibility="Collapsed"/>

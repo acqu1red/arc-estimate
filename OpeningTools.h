@@ -61,7 +61,7 @@ namespace winrt::estimate1
         // Получить информацию о превью
         bool HasValidPreview() const { return m_previewHit.isValid; }
         WallHitInfo GetPreviewHit() const { return m_previewHit; }
-        WorldPoint GetPreviewPosition() const { return m_previewHit.hitPoint; }
+        WorldPoint GetPreviewPosition() const { return m_previewPosition; }
 
         // Попытаться разместить дверь
         bool TryPlace()

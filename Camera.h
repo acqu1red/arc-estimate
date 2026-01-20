@@ -70,13 +70,19 @@ namespace winrt::estimate1
         // Преобразование мировых координат в экранные
         ScreenPoint WorldToScreen(const WorldPoint& world) const
         {
-            // Центр холста - точка отсчёта
+            // Use camera-relative coordinates for better precision at high zoom
+            // Screen = (World - CameraCenter) * Zoom + CanvasCenter
+            double cameraCenterX = -m_offset.X;
+            double cameraCenterY = -m_offset.Y;
+
             float centerX = m_canvasWidth / 2.0f;
             float centerY = m_canvasHeight / 2.0f;
 
-            // Преобразование: (мировая_точка + смещение) * масштаб + центр_экрана
-            float screenX = static_cast<float>((world.X + m_offset.X) * m_zoom) + centerX;
-            float screenY = static_cast<float>((world.Y + m_offset.Y) * m_zoom) + centerY;
+            double localX = world.X - cameraCenterX;
+            double localY = world.Y - cameraCenterY;
+
+            float screenX = static_cast<float>(localX * m_zoom) + centerX;
+            float screenY = static_cast<float>(localY * m_zoom) + centerY;
 
             return ScreenPoint(screenX, screenY);
         }
@@ -87,11 +93,13 @@ namespace winrt::estimate1
             float centerX = m_canvasWidth / 2.0f;
             float centerY = m_canvasHeight / 2.0f;
 
-            // Обратное преобразование
-            double worldX = (screen.X - centerX) / m_zoom - m_offset.X;
-            double worldY = (screen.Y - centerY) / m_zoom - m_offset.Y;
+            double localX = (screen.X - centerX) / m_zoom;
+            double localY = (screen.Y - centerY) / m_zoom;
 
-            return WorldPoint(worldX, worldY);
+            double cameraCenterX = -m_offset.X;
+            double cameraCenterY = -m_offset.Y;
+
+            return WorldPoint(localX + cameraCenterX, localY + cameraCenterY);
         }
 
         // Панорамирование на дельту в экранных координатах

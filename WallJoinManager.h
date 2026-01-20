@@ -9,36 +9,36 @@
 
 namespace winrt::estimate1
 {
-    // Тип соединения стен
+    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     enum class WallJoinType
     {
-        None,       // Нет соединения
-        LJoin,      // L-соединение (угол)
-        TJoin,      // T-соединение (примыкание)
-        XJoin       // X-соединение (пересечение)
+        None,       // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        LJoin,      // L-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ)
+        TJoin,      // T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        XJoin       // X-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     };
 
-    // Результат поиска соединения
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct WallJoinResult
     {
         WallJoinType joinType{ WallJoinType::None };
         Wall* otherWall{ nullptr };
-        bool atStart{ true };          // Соединение в начале (true) или конце (false) текущей стены
-        bool otherAtStart{ true };     // Соединение в начале (true) или конце (false) другой стены
-        WorldPoint joinPoint{ 0, 0 };  // Точка соединения
+        bool atStart{ true };          // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (true) пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (false) пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        bool otherAtStart{ true };     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (true) пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (false) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        WorldPoint joinPoint{ 0, 0 };  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     };
 
-    // Менеджер соединений стен
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     class WallJoinManager
     {
     public:
         WallJoinManager() = default;
 
-        // Допуск для определения соединения (в мм)
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅ пїЅпїЅ)
         void SetJoinTolerance(double tolerance) { m_joinTolerance = tolerance; }
         double GetJoinTolerance() const { return m_joinTolerance; }
 
-        // Найти соединения для стены
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         std::vector<WallJoinResult> FindJoins(
             const Wall& wall,
             const std::vector<std::unique_ptr<Wall>>& allWalls)
@@ -53,7 +53,7 @@ namespace winrt::estimate1
                 if (!other || other->GetId() == wall.GetId())
                     continue;
 
-                // Проверяем соединение в начале текущей стены
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (wall.IsJoinAllowedAtStart())
                 {
                     auto joinResult = CheckJoinAtPoint(start, true, wall, *other);
@@ -63,7 +63,7 @@ namespace winrt::estimate1
                     }
                 }
 
-                // Проверяем соединение в конце текущей стены
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (wall.IsJoinAllowedAtEnd())
                 {
                     auto joinResult = CheckJoinAtPoint(end, false, wall, *other);
@@ -77,7 +77,7 @@ namespace winrt::estimate1
             return results;
         }
 
-        // Выполнить соединение стен (обрезка/продление)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         void ApplyJoin(Wall& wall1, Wall& wall2, const WallJoinResult& join)
         {
             if (join.joinType == WallJoinType::None)
@@ -92,14 +92,14 @@ namespace winrt::estimate1
                 ApplyTJoin(wall1, wall2, join);
                 break;
             case WallJoinType::XJoin:
-                // X-соединения пока не поддерживаем
+                // X-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 break;
             default:
                 break;
             }
         }
 
-        // Найти и применить соединения для новой стены
+        // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void ProcessNewWall(Wall& newWall, std::vector<std::unique_ptr<Wall>>& allWalls)
         {
             auto joins = FindJoins(newWall, allWalls);
@@ -113,7 +113,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Вычислить точку пересечения двух отрезков
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static bool LineIntersection(
             const WorldPoint& p1, const WorldPoint& p2,
             const WorldPoint& p3, const WorldPoint& p4,
@@ -127,7 +127,7 @@ namespace winrt::estimate1
             double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
             
             if (std::abs(denom) < 0.0001)
-                return false; // Параллельные линии
+                return false; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
             double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
             
@@ -137,7 +137,7 @@ namespace winrt::estimate1
             return true;
         }
 
-        // Проверить, находится ли точка на отрезке
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static bool IsPointOnSegment(const WorldPoint& point, const WorldPoint& segStart, const WorldPoint& segEnd, double tolerance)
         {
             double segLength = segStart.Distance(segEnd);
@@ -147,14 +147,14 @@ namespace winrt::estimate1
             double distToStart = point.Distance(segStart);
             double distToEnd = point.Distance(segEnd);
             
-            // Точка на отрезке, если сумма расстояний до концов примерно равна длине отрезка
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             return std::abs(distToStart + distToEnd - segLength) < tolerance;
         }
 
     private:
-        double m_joinTolerance{ 50.0 }; // мм
+        double m_joinTolerance{ 50.0 }; // пїЅпїЅ
 
-        // Проверить соединение в конкретной точке
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         WallJoinResult CheckJoinAtPoint(
             const WorldPoint& point,
             bool atStart,
@@ -167,7 +167,7 @@ namespace winrt::estimate1
             WorldPoint otherStart = other.GetStartPoint();
             WorldPoint otherEnd = other.GetEndPoint();
 
-            // Проверяем совпадение с концами другой стены (L-join)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (L-join)
             if (other.IsJoinAllowedAtStart() && point.Distance(otherStart) < m_joinTolerance)
             {
                 result.joinType = WallJoinType::LJoin;
@@ -186,11 +186,11 @@ namespace winrt::estimate1
                 return result;
             }
 
-            // Проверяем примыкание к середине другой стены (T-join)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (T-join)
             double distToSegment = DistancePointToSegment(point, otherStart, otherEnd);
             if (distToSegment < m_joinTolerance)
             {
-                // Проверяем, что точка не слишком близко к концам
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 double distToOtherStart = point.Distance(otherStart);
                 double distToOtherEnd = point.Distance(otherEnd);
                 double otherLength = other.GetLength();
@@ -210,7 +210,7 @@ namespace winrt::estimate1
             return result;
         }
 
-        // Расстояние от точки до отрезка
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static double DistancePointToSegment(const WorldPoint& point, const WorldPoint& segStart, const WorldPoint& segEnd)
         {
             double dx = segEnd.X - segStart.X;
@@ -228,7 +228,7 @@ namespace winrt::estimate1
             return point.Distance(closest);
         }
 
-        // Проекция точки на отрезок
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static WorldPoint ProjectPointOnSegment(const WorldPoint& point, const WorldPoint& segStart, const WorldPoint& segEnd)
         {
             double dx = segEnd.X - segStart.X;
@@ -245,10 +245,10 @@ namespace winrt::estimate1
             return WorldPoint(segStart.X + t * dx, segStart.Y + t * dy);
         }
 
-        // Применить L-соединение (угол)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ L-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ)
         void ApplyLJoin(Wall& wall1, Wall& wall2, const WallJoinResult& join)
         {
-            // Находим точку пересечения осевых линий
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             WorldPoint intersection;
             bool found = LineIntersection(
                 wall1.GetStartPoint(), wall1.GetEndPoint(),
@@ -257,11 +257,11 @@ namespace winrt::estimate1
 
             if (!found)
             {
-                // Линии параллельны - используем точку соединения
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 intersection = join.joinPoint;
             }
 
-            // Обрезаем/продлеваем стены до точки пересечения
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (join.atStart)
             {
                 wall1.SetStartPoint(intersection);
@@ -281,10 +281,10 @@ namespace winrt::estimate1
             }
         }
 
-        // Применить T-соединение (примыкание)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         void ApplyTJoin(Wall& wall1, Wall& wall2, const WallJoinResult& join)
         {
-            // Находим точку пересечения осевых линий
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             WorldPoint intersection;
             bool found = LineIntersection(
                 wall1.GetStartPoint(), wall1.GetEndPoint(),
@@ -293,11 +293,11 @@ namespace winrt::estimate1
 
             if (!found)
             {
-                // Линии параллельны - используем проекцию
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 intersection = join.joinPoint;
             }
 
-            // Обрезаем/продлеваем примыкающую стену (wall1) до оси wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (wall1) пїЅпїЅ пїЅпїЅпїЅ wall2
             if (join.atStart)
             {
                 wall1.SetStartPoint(intersection);
@@ -307,7 +307,7 @@ namespace winrt::estimate1
                 wall1.SetEndPoint(intersection);
             }
 
-            // wall2 не изменяется при T-соединении
+            // wall2 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
     };
 }

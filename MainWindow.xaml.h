@@ -7,6 +7,7 @@
 #include "Layer.h"
 #include "Element.h"
 #include "WallRenderer.h"
+#include "ViewSettings.h"
 #include "DrawingTools.h"
 #include "DxfReference.h"
 #include "DxfReferenceRenderer.h"
@@ -124,6 +125,16 @@ namespace winrt::estimate1::implementation
                 Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
 
             void UpdateScaleUI();
+
+            // R-VIEW: Thin Lines toggle (Revit-like)
+            void OnThinLinesToggleClick(
+                Windows::Foundation::IInspectable const& sender,
+                Microsoft::UI::Xaml::RoutedEventArgs const& e);
+
+            // R-VIEW: View Scale changed (affects lineweights, not zoom)
+            void OnViewScaleChanged(
+                Windows::Foundation::IInspectable const& sender,
+                Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
 
         // M5: ���������� ������� DXF
             void OnImportDxfClick(
@@ -309,6 +320,9 @@ namespace winrt::estimate1::implementation
 
             // R-WALL: ������� ����� �������� ����
             WallAttachmentMode m_currentAttachmentMode{ WallAttachmentMode::Core };
+
+            // R-VIEW: View settings for Revit-like line weights
+            ViewSettings m_viewSettings;
 
             // M6: ������ �������
             ProjectMetadata m_projectMetadata;

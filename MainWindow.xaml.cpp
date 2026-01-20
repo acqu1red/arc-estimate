@@ -494,7 +494,8 @@ namespace winrt::estimate1::implementation
         {
              effectiveHoverId = m_trimExtendTool.GetBoundaryID();
         }
-        m_wallRenderer.Draw(session, m_camera, m_document, m_layerManager, effectiveHoverId);
+        // R-VIEW: Pass ViewSettings for Revit-like lineweight behavior
+        m_wallRenderer.Draw(session, m_camera, m_document, m_layerManager, effectiveHoverId, m_viewSettings);
 
         // R4: Рисуем двери и окна (поверх стен)
         {
@@ -528,126 +529,178 @@ namespace winrt::estimate1::implementation
         // R6.5: Балки (поверх стен)
         StructureRenderer::DrawBeams(session, m_camera, m_document.GetBeams(), 0);
 
-        // Рисуем превью стены (если рисуем)
-        if (m_viewModel.CurrentTool() == DrawingTool::Wall && m_wallTool.ShouldDrawPreview())
+        // Рисуем превью стены (при активном инструменте)
+        if (m_viewModel.CurrentTool() == DrawingTool::Wall)
         {
-            // M5.6: Получаем текущую точку с учётом расширенной привязки к стенам
-            WorldPoint endPoint = m_wallTool.GetCurrentPoint();
-            if (m_currentWallSnap.IsValid)
-            {
-                endPoint = m_currentWallSnap.ProjectedPoint;
-            }
-            else if (m_currentSnap.hasSnap)
-            {
-                endPoint = m_currentSnap.point;
-            }
+            auto layer = session.CreateLayer(0.7f);
             
+            WorldPoint startPos, endPos;
+            if (m_wallTool.ShouldDrawPreview())
+            {
+                startPos = m_wallTool.GetStartPoint();
+                endPos = m_currentWallSnap.IsValid ? m_currentWallSnap.ProjectedPoint : 
+                        (m_currentSnap.hasSnap ? m_currentSnap.point : m_wallTool.GetCurrentPoint());
+            }
+            else
+            {
+                // Floating preview to show thickness and alignment
+                startPos = m_currentWallSnap.IsValid ? m_currentWallSnap.ProjectedPoint : 
+                          (m_currentSnap.hasSnap ? m_currentSnap.point : m_wallTool.GetCurrentPoint());
+                endPos = startPos + WorldPoint(200.0, 0.0); // 200mm fake segment
+            }
+
             m_wallRenderer.DrawPreview(
                 session, m_camera,
-                m_wallTool.GetStartPoint(),
-                endPoint,
+                startPos,
+                endPos,
                 m_wallTool.GetThickness(),
                 m_wallTool.GetWorkState(),
                 m_layerManager,
                 m_wallTool.IsFlipped(),
                 m_wallTool.GetLocationLineMode());
-
+            
+            layer.Close();
         }
 
-        // R4: Рисуем превью двери (если инструмент двери активен)
-        if (m_viewModel.CurrentTool() == DrawingTool::Door && m_doorTool.HasValidPreview())
+        // R4: Рисуем превью двери (при активном инструменте)
+        if (m_viewModel.CurrentTool() == DrawingTool::Door)
         {
+            auto layer = session.CreateLayer(0.7f);
             auto hit = m_doorTool.GetPreviewHit();
-            if (hit.wall)
+            
+            WorldPoint pos = hit.isValid ? hit.hitPoint : m_doorTool.GetPreviewPosition();
+            WorldPoint wallDir{ 1.0, 0.0 };
+            double thick = 200.0;
+
+            if (hit.isValid && hit.wall)
             {
-                WorldPoint wallDir = m_doorTool.GetPreviewPosition();
                 wallDir = WorldPoint(
                     hit.wall->GetEndPoint().X - hit.wall->GetStartPoint().X,
                     hit.wall->GetEndPoint().Y - hit.wall->GetStartPoint().Y
                 );
                 double len = std::sqrt(wallDir.X * wallDir.X + wallDir.Y * wallDir.Y);
                 if (len > 0.001) { wallDir.X /= len; wallDir.Y /= len; }
-                
-                m_openingRenderer.DrawDoorPreview(
-                    session, m_camera,
-                    hit.hitPoint, wallDir,
-                    m_doorTool.GetWidth(),
-                    hit.wall->GetThickness(),
-                    true);
+                thick = hit.wall->GetThickness();
             }
+            
+            m_openingRenderer.DrawDoorPreview(
+                session, m_camera,
+                pos, wallDir,
+                m_doorTool.GetWidth(),
+                thick,
+                hit.isValid);
+            
+            layer.Close();
         }
 
-        // R4: Рисуем превью окна (если инструмент окна активен)
-        if (m_viewModel.CurrentTool() == DrawingTool::Window && m_windowTool.HasValidPreview())
+        // R4: Рисуем превью окна (при активном инструменте)
+        if (m_viewModel.CurrentTool() == DrawingTool::Window)
         {
+            auto layer = session.CreateLayer(0.7f);
             auto hit = m_windowTool.GetPreviewHit();
-            if (hit.wall)
+            
+            WorldPoint pos = hit.isValid ? hit.hitPoint : m_windowTool.GetPreviewPosition();
+            WorldPoint wallDir{ 1.0, 0.0 };
+            double thick = 200.0;
+
+            if (hit.isValid && hit.wall)
             {
-                WorldPoint wallDir(
+                wallDir = WorldPoint(
                     hit.wall->GetEndPoint().X - hit.wall->GetStartPoint().X,
                     hit.wall->GetEndPoint().Y - hit.wall->GetStartPoint().Y
                 );
                 double len = std::sqrt(wallDir.X * wallDir.X + wallDir.Y * wallDir.Y);
                 if (len > 0.001) { wallDir.X /= len; wallDir.Y /= len; }
-                
-                m_openingRenderer.DrawWindowPreview(
-                    session, m_camera,
-                    hit.hitPoint, wallDir,
-                    m_windowTool.GetWidth(),
-                    hit.wall->GetThickness(),
-                    true);
+                thick = hit.wall->GetThickness();
             }
+            
+            m_openingRenderer.DrawWindowPreview(
+                session, m_camera,
+                pos, wallDir,
+                m_windowTool.GetWidth(),
+                thick,
+                hit.isValid);
+            
+            layer.Close();
         }
 
         // R6: Превью колонны
         if (m_viewModel.CurrentTool() == DrawingTool::Column && m_columnTool.m_previewColumn)
         {
+             auto layer = session.CreateLayer(0.7f);
              std::vector<std::shared_ptr<Column>> preview = { 
                  std::shared_ptr<Column>(m_columnTool.m_previewColumn.get(), [](Column*){})
              };
              StructureRenderer::DrawColumns(session, m_camera, preview, 0);
+             layer.Close();
         }
 
         // R6: Превью перекрытия
-        if (m_viewModel.CurrentTool() == DrawingTool::Slab && m_slabTool.IsActive())
+        if (m_viewModel.CurrentTool() == DrawingTool::Slab)
         {
-            CanvasPathBuilder builder(session);
-            auto pts = m_slabTool.GetPreviewPoints();
-             if (pts.size() > 1) {
-                 ScreenPoint p0 = m_camera.WorldToScreen(pts[0]);
-                 builder.BeginFigure(p0.X, p0.Y);
-                 for (size_t i = 1; i < pts.size(); ++i) {
-                     ScreenPoint p = m_camera.WorldToScreen(pts[i]);
-                     builder.AddLine(p.X, p.Y);
+            auto layer = session.CreateLayer(0.7f);
+            if (m_slabTool.IsActive())
+            {
+                CanvasPathBuilder builder(session);
+                auto pts = m_slabTool.GetPreviewPoints();
+                 if (pts.size() > 1) {
+                     ScreenPoint p0 = m_camera.WorldToScreen(pts[0]);
+                     builder.BeginFigure(p0.X, p0.Y);
+                     for (size_t i = 1; i < pts.size(); ++i) {
+                         ScreenPoint p = m_camera.WorldToScreen(pts[i]);
+                         builder.AddLine(p.X, p.Y);
+                     }
+                     builder.EndFigure(CanvasFigureLoop::Open);
+                     auto geometry = CanvasGeometry::CreatePath(builder);
+                     session.DrawGeometry(geometry, Microsoft::UI::Colors::Blue(), 1.0f);
                  }
-                 builder.EndFigure(CanvasFigureLoop::Open);
-                 auto geometry = CanvasGeometry::CreatePath(builder);
-                 session.DrawGeometry(geometry, Microsoft::UI::Colors::Blue(), 1.0f);
-             }
+            }
+            else
+            {
+                // Floating point or small rectangle highlight
+                WorldPoint p = m_currentSnap.hasSnap ? m_currentSnap.point : WorldPoint(m_viewModel.CursorX(), m_viewModel.CursorY());
+                m_wallRenderer.DrawSnapPoint(session, m_camera, p, true);
+            }
+            layer.Close();
         }
 
         // R6.5: Превью балки
-        if (m_viewModel.CurrentTool() == DrawingTool::Beam && m_beamTool.IsDrawing())
+        if (m_viewModel.CurrentTool() == DrawingTool::Beam)
         {
-            WorldPoint endPoint = m_beamTool.GetCurrentPoint();
-            // TODO: Use better constructor-like preview
-             // Create temporary beam for preview
-             auto beam = std::make_shared<Beam>();
-             beam->SetStartPoint(m_beamTool.GetStartPoint());
-             beam->SetEndPoint(endPoint);
-             beam->SetWidth(m_beamTool.GetWidth());
-             
-             std::vector<std::shared_ptr<Beam>> preview = { beam };
-             StructureRenderer::DrawBeams(session, m_camera, preview, 0);
+            auto layer = session.CreateLayer(0.7f);
+            WorldPoint startPos, endPos;
+            if (m_beamTool.IsDrawing())
+            {
+                startPos = m_beamTool.GetStartPoint();
+                endPos = m_beamTool.GetCurrentPoint();
+            }
+            else
+            {
+                startPos = m_currentSnap.hasSnap ? m_currentSnap.point : WorldPoint(m_viewModel.CursorX(), m_viewModel.CursorY());
+                endPos = startPos + WorldPoint(400.0, 0.0);
+            }
+
+            auto beam = std::make_shared<Beam>();
+            beam->SetStartPoint(startPos);
+            beam->SetEndPoint(endPos);
+            beam->SetWidth(m_beamTool.GetWidth());
+            
+            std::vector<std::shared_ptr<Beam>> preview = { beam };
+            StructureRenderer::DrawBeams(session, m_camera, preview, 0);
+            layer.Close();
         }
 
         // Рисуем точку привязки
-                if (m_currentSnap.hasSnap)
-                {
-                    m_wallRenderer.DrawSnapPoint(session, m_camera, m_currentSnap.point, true);
-                }
+        if (m_currentSnap.hasSnap)
+        {
+            m_wallRenderer.DrawSnapPoint(session, m_camera, m_currentSnap.point, true);
+        }
 
-                // M5.6: Расширенный индикатор привязки отключён (будет переработан позже)
+        // M5.6: Отрисовка линий выравнивания
+        if (m_viewModel.CurrentTool() == DrawingTool::Wall && m_currentWallSnap.IsValid)
+        {
+            WallSnapRenderer::DrawAlignmentLines(session, m_camera, m_currentWallSnap);
+        }
 
         // M5.6: Показываем режим привязки при использовании инструмента стены
         if (m_viewModel.CurrentTool() == DrawingTool::Wall)
@@ -658,6 +711,23 @@ namespace winrt::estimate1::implementation
                 m_wallSnapSystem.GetReferenceMode(),
                 canvasWidth - 180.0f, 10.0f);
         }
+
+        // R-VIEW: Debug overlay for view settings (bottom-left corner)
+        // Shows current view scale, zoom, and thin lines state for debugging
+        #ifdef _DEBUG
+        {
+            wchar_t debugText[128];
+            swprintf_s(debugText, L"View 1:%d | Zoom %.2fx | %s",
+                m_viewSettings.GetViewScaleDenominator(),
+                m_camera.GetZoom(),
+                m_viewSettings.IsThinLinesEnabled() ? L"THIN" : L"Normal");
+            
+            session.DrawText(
+                debugText,
+                Windows::Foundation::Numerics::float2(10.0f, m_camera.GetCanvasHeight() - 25.0f),
+                Windows::UI::ColorHelper::FromArgb(180, 200, 200, 200));
+        }
+        #endif
     }
 
     // Обработчик создания ресурсов холста
@@ -1205,9 +1275,15 @@ namespace winrt::estimate1::implementation
                 m_currentSnap = m_snapManager.FindSnap(
                     worldPos, m_document, m_layerManager, m_camera);
 
-                // M5.6: Расширенная привязка к стенам
+                // M5.6: Расширенная привязка к стенам с учетом выравнивания (Alignment)
+                std::optional<WorldPoint> startPoint;
+                if (m_wallTool.GetState() != WallToolState::Idle)
+                {
+                    startPoint = m_wallTool.GetStartPoint();
+                }
+
                 m_currentWallSnap = m_wallSnapSystem.FindBestSnap(
-                    worldPos, m_document.GetWalls(), m_camera.GetZoom());
+                    worldPos, startPoint, m_document.GetWalls(), m_camera.GetZoom());
                 
                 // Обновляем индикатор режима в статусной строке
                 if (SnapIndicatorText())
@@ -1465,6 +1541,52 @@ namespace winrt::estimate1::implementation
                         // другие элементы обрабатываются в соответствующих ветках
                     }
                 }
+            }
+            // R-VIEW: T - Toggle Thin Lines (debug/testing)
+            else if (key == Windows::System::VirtualKey::T)
+            {
+                bool currentState = m_viewSettings.IsThinLinesEnabled();
+                m_viewSettings.SetThinLinesEnabled(!currentState);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
+            }
+            // R-VIEW: Number keys 1-5 - View Scale presets (debug/testing)
+            // 1 = 1:20, 2 = 1:50, 3 = 1:100, 4 = 1:200, 5 = 1:500
+            else if (key == Windows::System::VirtualKey::Number1)
+            {
+                m_viewSettings.SetViewScaleDenominator(20);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
+            }
+            else if (key == Windows::System::VirtualKey::Number2)
+            {
+                m_viewSettings.SetViewScaleDenominator(50);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
+            }
+            else if (key == Windows::System::VirtualKey::Number3)
+            {
+                m_viewSettings.SetViewScaleDenominator(100);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
+            }
+            else if (key == Windows::System::VirtualKey::Number4)
+            {
+                m_viewSettings.SetViewScaleDenominator(200);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
+            }
+            else if (key == Windows::System::VirtualKey::Number5)
+            {
+                m_viewSettings.SetViewScaleDenominator(500);
+                m_wallRenderer.InvalidateCache();
+                InvalidateCanvas();
+                e.Handled(true);
             }
         }
 
@@ -3550,6 +3672,65 @@ namespace winrt::estimate1::implementation
         m_wallTool.SetAttachmentMode(m_currentAttachmentMode);
 
         // КРИТИЧНО: ������������� canvas ��� ���������� ��������������
+        InvalidateCanvas();
+    }
+
+    // =====================================================
+    // R-VIEW: Thin Lines Toggle (Revit-like behavior)
+    // =====================================================
+    // When Thin Lines is ON, all wall strokes are drawn as hairline width
+    // regardless of view scale or lineweight settings.
+
+    void MainWindow::OnThinLinesToggleClick(
+        [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
+        [[maybe_unused]] Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        // Toggle thin lines mode
+        bool currentState = m_viewSettings.IsThinLinesEnabled();
+        m_viewSettings.SetThinLinesEnabled(!currentState);
+
+        // Update the toggle button visual state if it exists
+        // (The XAML binding will handle this if using a ToggleButton)
+
+        // Invalidate geometry cache since line weights changed
+        m_wallRenderer.InvalidateCache();
+
+        // Redraw
+        InvalidateCanvas();
+    }
+
+    // =====================================================
+    // R-VIEW: View Scale Changed (affects lineweights)
+    // =====================================================
+    // View Scale (1:50, 1:100, etc.) affects the printed line thickness.
+    // This is DIFFERENT from Camera Zoom which is just for navigation.
+
+    void MainWindow::OnViewScaleChanged(
+        [[maybe_unused]] Windows::Foundation::IInspectable const& sender,
+        [[maybe_unused]] Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e)
+    {
+        auto combo = sender.try_as<Microsoft::UI::Xaml::Controls::ComboBox>();
+        if (!combo) return;
+
+        int index = combo.SelectedIndex();
+        int viewScaleDenom = 50; // Default
+
+        switch (index)
+        {
+        case 0: viewScaleDenom = 20; break;   // 1:20
+        case 1: viewScaleDenom = 50; break;   // 1:50
+        case 2: viewScaleDenom = 100; break;  // 1:100
+        case 3: viewScaleDenom = 200; break;  // 1:200
+        case 4: viewScaleDenom = 500; break;  // 1:500
+        default: viewScaleDenom = 50; break;
+        }
+
+        m_viewSettings.SetViewScaleDenominator(viewScaleDenom);
+
+        // Invalidate geometry cache since line weights changed
+        m_wallRenderer.InvalidateCache();
+
+        // Redraw
         InvalidateCanvas();
     }
 }

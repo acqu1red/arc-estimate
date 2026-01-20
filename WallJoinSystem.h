@@ -17,88 +17,88 @@
 namespace winrt::estimate1
 {
     // =====================================================
-    // R2 — СИСТЕМА СОЕДИНЕНИЙ СТЕН С ДОРИСОВКОЙ УГЛОВ
+    // R2 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     // =====================================================
 
-    // Тип соединения стен
+    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     enum class JoinType
     {
-        None,           // Нет соединения
-        LJoin,          // L-соединение (угол, две стены встречаются)
-        TJoin,          // T-соединение (одна стена упирается в другую)
-        XJoin,          // X-соединение (пересечение)
-        Collinear       // Колинеарное (стены на одной оси)
+        None,           // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        LJoin,          // L-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        TJoin,          // T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+        XJoin,          // X-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        Collinear       // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ)
     };
 
-    // Тип стыка угла
+    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     enum class JoinStyle
     {
-        Miter,          // Митра — скос под углом (для одинаковых толщин)
-        Butt,           // Встык — одна стена перекрывает другую
-        Bevel           // Скос — произвольный угол
+        Miter,          // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+        Butt,           // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        Bevel           // пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     };
 
     // =====================================================
-    // СТРУКТУРЫ ДЛЯ ГЕОМЕТРИИ СОЕДИНЕНИЙ
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     // =====================================================
 
-    // Грань стены (для расчёта пересечений)
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     struct WallEdge
     {
         WorldPoint Start;
         WorldPoint End;
-        bool IsExterior{ true };    // Внешняя (true) или внутренняя (false) грань
+        bool IsExterior{ true };    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (true) пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (false) пїЅпїЅпїЅпїЅпїЅ
     };
 
-    // Контур стены с учётом соединений
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct WallContour
     {
-        std::vector<WorldPoint> Points;     // Вершины контура (по часовой стрелке)
+        std::vector<WorldPoint> Points;     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         bool IsClosed{ true };
     };
 
-    // Информация о соединении
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct JoinInfo
     {
         JoinType Type{ JoinType::None };
         JoinStyle Style{ JoinStyle::Miter };
         uint64_t WallId1{ 0 };
         uint64_t WallId2{ 0 };
-        bool Wall1AtStart{ true };          // Соединение в начале (true) или конце (false) Wall1
-        bool Wall2AtStart{ true };          // Соединение в начале (true) или конце (false) Wall2
-        WorldPoint JoinPoint{ 0, 0 };       // Точка пересечения осей
-        double Angle{ 0.0 };                // Угол между стенами (радианы)
+        bool Wall1AtStart{ true };          // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (true) пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (false) Wall1
+        bool Wall2AtStart{ true };          // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (true) пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (false) Wall2
+        WorldPoint JoinPoint{ 0, 0 };       // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        double Angle{ 0.0 };                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
 
-        // Вычисленные точки угла
-        std::vector<WorldPoint> CornerPoints;   // Точки для отрисовки угла
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        std::vector<WorldPoint> CornerPoints;   // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
         bool IsValid() const { return Type != JoinType::None && WallId1 != 0 && WallId2 != 0; }
     };
 
-    // Настройки соединений
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     struct JoinSettings
     {
-        bool AutoJoinEnabled{ true };           // Автоматическое соединение
-        double JoinTolerance{ 50.0 };           // Радиус поиска соединений (мм)
+        bool AutoJoinEnabled{ true };           // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        double JoinTolerance{ 50.0 };           // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ)
         JoinStyle DefaultStyle{ JoinStyle::Miter };
-        bool ShowJoinPreview{ true };           // Показывать превью соединения
-        bool ExtendToMeet{ true };              // Удлинять стены до пересечения
+        bool ShowJoinPreview{ true };           // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        bool ExtendToMeet{ true };              // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     };
 
     // =====================================================
-    // УТИЛИТЫ ГЕОМЕТРИИ
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     // =====================================================
 
     class JoinGeometry
     {
     public:
-        // Пересечение двух линий (бесконечных)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         static bool LineIntersection(
             const WorldPoint& p1, const WorldPoint& p2,
             const WorldPoint& p3, const WorldPoint& p4,
             WorldPoint& intersection,
-            double& t1,     // Параметр на первой линии (0-1 = на отрезке)
-            double& t2)     // Параметр на второй линии
+            double& t1,     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (0-1 = пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+            double& t2)     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         {
             double x1 = p1.X, y1 = p1.Y;
             double x2 = p2.X, y2 = p2.Y;
@@ -108,7 +108,7 @@ namespace winrt::estimate1
             double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
             if (std::abs(denom) < 1e-10)
-                return false;   // Параллельные линии
+                return false;   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
             t1 = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
             t2 = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
@@ -119,7 +119,7 @@ namespace winrt::estimate1
             return true;
         }
 
-        // Упрощённая версия
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         static bool LineIntersection(
             const WorldPoint& p1, const WorldPoint& p2,
             const WorldPoint& p3, const WorldPoint& p4,
@@ -129,7 +129,7 @@ namespace winrt::estimate1
             return LineIntersection(p1, p2, p3, p4, intersection, t1, t2);
         }
 
-        // Угол между двумя векторами (в радианах, 0 до PI)
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, 0 пїЅпїЅ PI)
         static double AngleBetween(const WorldPoint& dir1, const WorldPoint& dir2)
         {
             double dot = dir1.X * dir2.X + dir1.Y * dir2.Y;
@@ -143,7 +143,7 @@ namespace winrt::estimate1
             return std::acos(cosAngle);
         }
 
-        // Подписанный угол от dir1 к dir2 (против часовой стрелки положительный)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ dir1 пїЅ dir2 (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         static double SignedAngle(const WorldPoint& dir1, const WorldPoint& dir2)
         {
             double angle = std::atan2(dir2.Y, dir2.X) - std::atan2(dir1.Y, dir1.X);
@@ -152,14 +152,14 @@ namespace winrt::estimate1
             return angle;
         }
 
-        // Проверка, параллельны ли два вектора
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static bool AreParallel(const WorldPoint& dir1, const WorldPoint& dir2, double tolerance = 0.01)
         {
             double cross = dir1.X * dir2.Y - dir1.Y * dir2.X;
             return std::abs(cross) < tolerance;
         }
 
-        // Проверка, колинеарны ли два вектора (параллельны и сонаправлены или противоположны)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         static bool AreCollinear(const WorldPoint& dir1, const WorldPoint& dir2, double tolerance = 0.01)
         {
             if (!AreParallel(dir1, dir2, tolerance))
@@ -168,7 +168,7 @@ namespace winrt::estimate1
             return std::abs(std::abs(dot) - 1.0) < tolerance;
         }
 
-        // Расстояние от точки до бесконечной линии
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         static double DistanceToLine(const WorldPoint& point, const WorldPoint& lineStart, const WorldPoint& lineEnd)
         {
             double dx = lineEnd.X - lineStart.X;
@@ -184,7 +184,7 @@ namespace winrt::estimate1
                            lineEnd.Y * lineStart.X) / len;
         }
 
-        // Смещённая линия (параллельный перенос)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         static void OffsetLine(
             const WorldPoint& start, const WorldPoint& end,
             double offset,
@@ -201,7 +201,7 @@ namespace winrt::estimate1
                 return;
             }
 
-            // Перпендикуляр (влево)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
             double perpX = -dy / len;
             double perpY = dx / len;
 
@@ -213,7 +213,7 @@ namespace winrt::estimate1
     };
 
     // =====================================================
-    // ГЛАВНЫЙ КЛАСС СИСТЕМЫ СОЕДИНЕНИЙ
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     // =====================================================
 
     class WallJoinSystem
@@ -221,16 +221,16 @@ namespace winrt::estimate1
     public:
         WallJoinSystem() = default;
 
-        // Настройки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void SetSettings(const JoinSettings& settings) { m_settings = settings; }
         JoinSettings& GetSettings() { return m_settings; }
         const JoinSettings& GetSettings() const { return m_settings; }
 
         // =====================================================
-        // R2.1 — ОБНАРУЖЕНИЕ ТИПОВ СОЕДИНЕНИЙ
+        // R2.1 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================
 
-        // Найти все соединения для стены
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         std::vector<JoinInfo> FindJoins(
             const Wall& wall,
             const std::vector<std::unique_ptr<Wall>>& allWalls) const
@@ -242,7 +242,7 @@ namespace winrt::estimate1
                 if (!other || other->GetId() == wall.GetId())
                     continue;
 
-                // Проверяем соединение в начале wall
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall
                 if (wall.IsJoinAllowedAtStart())
                 {
                     auto join = DetectJoinType(wall, true, *other);
@@ -250,7 +250,7 @@ namespace winrt::estimate1
                         results.push_back(join);
                 }
 
-                // Проверяем соединение в конце wall
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ wall
                 if (wall.IsJoinAllowedAtEnd())
                 {
                     auto join = DetectJoinType(wall, false, *other);
@@ -262,7 +262,7 @@ namespace winrt::estimate1
             return results;
         }
 
-        // Определить тип соединения между двумя стенами
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         JoinInfo DetectJoinType(const Wall& wall1, bool wall1AtStart, const Wall& wall2) const
         {
             JoinInfo result;
@@ -272,7 +272,7 @@ namespace winrt::estimate1
 
             WorldPoint p1 = wall1AtStart ? wall1.GetStartPoint() : wall1.GetEndPoint();
             WorldPoint dir1 = wall1.GetDirection();
-            if (!wall1AtStart) dir1 = WorldPoint(-dir1.X, -dir1.Y);   // Направление от конца наружу
+            if (!wall1AtStart) dir1 = WorldPoint(-dir1.X, -dir1.Y);   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
             WorldPoint start2 = wall2.GetStartPoint();
             WorldPoint end2 = wall2.GetEndPoint();
@@ -280,7 +280,7 @@ namespace winrt::estimate1
 
             double tolerance = m_settings.JoinTolerance;
 
-            // Проверка L-join (концы близки)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ L-join (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
             if (wall2.IsJoinAllowedAtStart() && p1.Distance(start2) < tolerance)
             {
                 result.Type = JoinType::LJoin;
@@ -301,11 +301,11 @@ namespace winrt::estimate1
                 return result;
             }
 
-            // Проверка T-join (конец wall1 на теле wall2)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ T-join (пїЅпїЅпїЅпїЅпїЅ wall1 пїЅпїЅ пїЅпїЅпїЅпїЅ wall2)
             double distToWall2 = DistancePointToSegment(p1, start2, end2);
             if (distToWall2 < tolerance)
             {
-                // Убедимся что точка не у концов wall2
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall2
                 double distToStart2 = p1.Distance(start2);
                 double distToEnd2 = p1.Distance(end2);
                 double minEndDist = wall2.GetThickness();
@@ -313,7 +313,7 @@ namespace winrt::estimate1
                 if (distToStart2 > minEndDist && distToEnd2 > minEndDist)
                 {
                     result.Type = JoinType::TJoin;
-                    result.Wall2AtStart = false;    // T-join не привязан к концам
+                    result.Wall2AtStart = false;    // T-join пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     result.JoinPoint = ProjectPointOnLine(p1, start2, end2);
                     result.Angle = JoinGeometry::AngleBetween(dir1, wall2.GetPerpendicular());
                     CalculateTJoinGeometry(wall1, wall1AtStart, wall2, result);
@@ -321,7 +321,7 @@ namespace winrt::estimate1
                 }
             }
 
-            // Проверка колинеарности
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (JoinGeometry::AreCollinear(dir1, dir2))
             {
                 double distToLine = JoinGeometry::DistanceToLine(p1, start2, end2);
@@ -329,7 +329,7 @@ namespace winrt::estimate1
                 {
                     result.Type = JoinType::Collinear;
                     result.Angle = 0.0;
-                    // Найти ближайший конец wall2
+                    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ wall2
                     if (p1.Distance(start2) < p1.Distance(end2))
                     {
                         result.Wall2AtStart = true;
@@ -344,7 +344,7 @@ namespace winrt::estimate1
                 }
             }
 
-            // Проверка X-join (пересечение в середине обеих стен)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ X-join (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
             WorldPoint intersection;
             double t1, t2;
             if (JoinGeometry::LineIntersection(
@@ -352,7 +352,7 @@ namespace winrt::estimate1
                     start2, end2,
                     intersection, t1, t2))
             {
-                // Пересечение внутри обоих отрезков
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (t1 > 0.1 && t1 < 0.9 && t2 > 0.1 && t2 < 0.9)
                 {
                     result.Type = JoinType::XJoin;
@@ -366,21 +366,21 @@ namespace winrt::estimate1
         }
 
         // =====================================================
-        // R2.3 — РАСЧЁТ ГЕОМЕТРИИ УГЛОВ
+        // R2.3 пїЅ пїЅпїЅпїЅЧЁпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         // =====================================================
 
-        // Рассчитать контур стены с учётом всех соединений
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         WallContour CalculateWallContour(
             const Wall& wall,
             const std::vector<JoinInfo>& joins) const
         {
             WallContour contour;
 
-            // Базовые угловые точки (без соединений)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             WorldPoint p1, p2, p3, p4;
             wall.GetCornerPoints(p1, p2, p3, p4);
 
-            // Найти соединения в начале и конце
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
             const JoinInfo* startJoin = nullptr;
             const JoinInfo* endJoin = nullptr;
 
@@ -402,10 +402,10 @@ namespace winrt::estimate1
                 }
             }
 
-            // Начальные точки
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             if (startJoin && startJoin->Type == JoinType::LJoin && !startJoin->CornerPoints.empty())
             {
-                // Использовать вычисленные точки угла
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 for (const auto& pt : startJoin->CornerPoints)
                 {
                     contour.Points.push_back(pt);
@@ -417,7 +417,7 @@ namespace winrt::estimate1
                 contour.Points.push_back(p2);
             }
 
-            // Конечные точки
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             if (endJoin && endJoin->Type == JoinType::LJoin && !endJoin->CornerPoints.empty())
             {
                 for (auto it = endJoin->CornerPoints.rbegin(); it != endJoin->CornerPoints.rend(); ++it)
@@ -435,30 +435,30 @@ namespace winrt::estimate1
         }
 
         // =====================================================
-        // R2.4 — ПРЕВЬЮ СОЕДИНЕНИЯ ПРИ РИСОВАНИИ
+        // R2.4 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================
 
-        // Найти потенциальное соединение для превью (при рисовании стены)
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
         std::optional<JoinInfo> FindPreviewJoin(
             const WorldPoint& wallStart,
             const WorldPoint& wallEnd,
             double thickness,
             const std::vector<std::unique_ptr<Wall>>& allWalls) const
         {
-            // Создаём временную стену для проверки
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             Wall tempWall(wallStart, wallEnd, thickness);
 
-            // Ищем соединения
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             auto joins = FindJoins(tempWall, allWalls);
 
-            // Возвращаем первое найденное соединение в конце (там где рисуем)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
             for (const auto& join : joins)
             {
-                if (!join.Wall1AtStart)     // Соединение в конце рисуемой стены
+                if (!join.Wall1AtStart)     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     return join;
             }
 
-            // Или соединение в начале
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             for (const auto& join : joins)
             {
                 if (join.Wall1AtStart)
@@ -469,10 +469,10 @@ namespace winrt::estimate1
         }
 
         // =====================================================
-        // R2.5 — ПРИМЕНЕНИЕ СОЕДИНЕНИЙ
+        // R2.5 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================
 
-        // Применить соединение (обрезать/удлинить стены)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
         void ApplyJoin(Wall& wall1, Wall& wall2, const JoinInfo& join)
         {
             if (!join.IsValid())
@@ -487,17 +487,17 @@ namespace winrt::estimate1
                 ApplyTJoin(wall1, wall2, join);
                 break;
             case JoinType::Collinear:
-                // Колинеарные стены можно объединить (опционально)
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                 break;
             case JoinType::XJoin:
-                // X-соединения обычно не модифицируют геометрию
+                // X-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 break;
             default:
                 break;
             }
         }
 
-        // Обработать новую стену (найти и применить все соединения)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         void ProcessNewWall(Wall& newWall, std::vector<std::unique_ptr<Wall>>& allWalls)
         {
             if (!m_settings.AutoJoinEnabled)
@@ -507,7 +507,7 @@ namespace winrt::estimate1
 
             for (auto& join : joins)
             {
-                // Найти вторую стену
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 Wall* otherWall = nullptr;
                 for (auto& w : allWalls)
                 {
@@ -526,13 +526,13 @@ namespace winrt::estimate1
         }
 
         // =====================================================
-        // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         // =====================================================
 
     private:
         JoinSettings m_settings;
 
-        // Расстояние от точки до отрезка
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         static double DistancePointToSegment(const WorldPoint& point, const WorldPoint& segStart, const WorldPoint& segEnd)
         {
             double dx = segEnd.X - segStart.X;
@@ -550,7 +550,7 @@ namespace winrt::estimate1
             return point.Distance(closest);
         }
 
-        // Проекция точки на линию
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         static WorldPoint ProjectPointOnLine(const WorldPoint& point, const WorldPoint& lineStart, const WorldPoint& lineEnd)
         {
             double dx = lineEnd.X - lineStart.X;
@@ -566,7 +566,7 @@ namespace winrt::estimate1
         }
 
         // =====================================================
-        // R2.3 — РАСЧЁТ МИТРА-УГЛА (L-JOIN)
+        // R2.3 пїЅ пїЅпїЅпїЅЧЁпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ (L-JOIN)
         // =====================================================
 
         void CalculateMiterCorner(
@@ -577,48 +577,48 @@ namespace winrt::estimate1
             join.CornerPoints.clear();
             join.Style = m_settings.DefaultStyle;
 
-            // Получаем направления стен (от точки соединения наружу)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
             WorldPoint dir1 = wall1.GetDirection();
             if (wall1AtStart) dir1 = WorldPoint(-dir1.X, -dir1.Y);
 
             WorldPoint dir2 = wall2.GetDirection();
             if (wall2AtStart) dir2 = WorldPoint(-dir2.X, -dir2.Y);
 
-            // Перпендикуляры
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             WorldPoint perp1(-dir1.Y, dir1.X);
             WorldPoint perp2(-dir2.Y, dir2.X);
 
             double half1 = wall1.GetThickness() / 2.0;
             double half2 = wall2.GetThickness() / 2.0;
 
-            // Получаем грани каждой стены
-            // Wall1: внешняя и внутренняя грани
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+            // Wall1: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             WorldPoint w1_ext_start, w1_ext_end;
             WorldPoint w1_int_start, w1_int_end;
             GetWallEdges(wall1, w1_ext_start, w1_ext_end, w1_int_start, w1_int_end);
 
-            // Wall2: внешняя и внутренняя грани
+            // Wall2: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             WorldPoint w2_ext_start, w2_ext_end;
             WorldPoint w2_int_start, w2_int_end;
             GetWallEdges(wall2, w2_ext_start, w2_ext_end, w2_int_start, w2_int_end);
 
-            // Пересечения граней для митра-угла
-            WorldPoint corner1, corner2;    // Две точки угла
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ
+            WorldPoint corner1, corner2;    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
-            // Внешняя грань wall1 с внешней гранью wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ wall1 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall2
             if (JoinGeometry::LineIntersection(w1_ext_start, w1_ext_end, w2_ext_start, w2_ext_end, corner1))
             {
                 join.CornerPoints.push_back(corner1);
             }
 
-            // Внутренняя грань wall1 с внутренней гранью wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ wall1 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall2
             if (JoinGeometry::LineIntersection(w1_int_start, w1_int_end, w2_int_start, w2_int_end, corner2))
             {
                 join.CornerPoints.push_back(corner2);
             }
         }
 
-        // Получить внешнюю и внутреннюю грани стены
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         void GetWallEdges(
             const Wall& wall,
             WorldPoint& extStart, WorldPoint& extEnd,
@@ -630,16 +630,16 @@ namespace winrt::estimate1
             WorldPoint start = wall.GetStartPoint();
             WorldPoint end = wall.GetEndPoint();
 
-            // Внешняя грань (по положительному перпендикуляру)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             extStart = WorldPoint(start.X + perp.X * half, start.Y + perp.Y * half);
             extEnd = WorldPoint(end.X + perp.X * half, end.Y + perp.Y * half);
 
-            // Внутренняя грань (по отрицательному перпендикуляру)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             intStart = WorldPoint(start.X - perp.X * half, start.Y - perp.Y * half);
             intEnd = WorldPoint(end.X - perp.X * half, end.Y - perp.Y * half);
         }
 
-        // Расчёт геометрии T-соединения
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void CalculateTJoinGeometry(
             const Wall& wall1, bool wall1AtStart,
             const Wall& wall2,
@@ -647,8 +647,8 @@ namespace winrt::estimate1
         {
             join.CornerPoints.clear();
 
-            // T-join: wall1 упирается в wall2
-            // Обрезаем wall1 по грани wall2
+            // T-join: wall1 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ wall1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ wall2
 
             WorldPoint dir1 = wall1.GetDirection();
             if (!wall1AtStart) dir1 = WorldPoint(-dir1.X, -dir1.Y);
@@ -656,7 +656,7 @@ namespace winrt::estimate1
             WorldPoint perp2 = wall2.GetPerpendicular();
             double half2 = wall2.GetThickness() / 2.0;
 
-            // Определяем с какой стороны wall2 подходит wall1
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ wall2 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ wall1
             WorldPoint p1 = wall1AtStart ? wall1.GetStartPoint() : wall1.GetEndPoint();
             WorldPoint mid2((wall2.GetStartPoint().X + wall2.GetEndPoint().X) / 2,
                            (wall2.GetStartPoint().Y + wall2.GetEndPoint().Y) / 2);
@@ -664,11 +664,11 @@ namespace winrt::estimate1
             WorldPoint toP1(p1.X - mid2.X, p1.Y - mid2.Y);
             double dot = toP1.X * perp2.X + toP1.Y * perp2.Y;
 
-            // Грань wall2, к которой примыкает wall1
+            // пїЅпїЅпїЅпїЅпїЅ wall2, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ wall1
             WorldPoint edgeStart, edgeEnd;
             if (dot > 0)
             {
-                // Примыкание к внешней грани
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 edgeStart = WorldPoint(wall2.GetStartPoint().X + perp2.X * half2,
                                        wall2.GetStartPoint().Y + perp2.Y * half2);
                 edgeEnd = WorldPoint(wall2.GetEndPoint().X + perp2.X * half2,
@@ -676,14 +676,14 @@ namespace winrt::estimate1
             }
             else
             {
-                // Примыкание к внутренней грани
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 edgeStart = WorldPoint(wall2.GetStartPoint().X - perp2.X * half2,
                                        wall2.GetStartPoint().Y - perp2.Y * half2);
                 edgeEnd = WorldPoint(wall2.GetEndPoint().X - perp2.X * half2,
                                      wall2.GetEndPoint().Y - perp2.Y * half2);
             }
 
-            // Пересечение осей wall1 с гранью wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ wall1 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall2
             WorldPoint intersection;
             if (JoinGeometry::LineIntersection(
                     wall1.GetStartPoint(), wall1.GetEndPoint(),
@@ -694,10 +694,10 @@ namespace winrt::estimate1
             }
         }
 
-        // Применить L-соединение
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ L-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void ApplyLJoin(Wall& wall1, Wall& wall2, const JoinInfo& join)
         {
-            // Находим точку пересечения осей
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             WorldPoint intersection;
             if (!JoinGeometry::LineIntersection(
                     wall1.GetStartPoint(), wall1.GetEndPoint(),
@@ -707,7 +707,7 @@ namespace winrt::estimate1
                 intersection = join.JoinPoint;
             }
 
-            // Перемещаем концы стен к точке пересечения
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (join.Wall1AtStart)
                 wall1.SetStartPoint(intersection);
             else
@@ -719,10 +719,10 @@ namespace winrt::estimate1
                 wall2.SetEndPoint(intersection);
         }
 
-        // Применить T-соединение
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void ApplyTJoin(Wall& wall1, Wall& wall2, const JoinInfo& join)
         {
-            // Находим точку пересечения оси wall1 с осью wall2
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ wall1 пїЅ пїЅпїЅпїЅпїЅ wall2
             WorldPoint intersection;
             if (!JoinGeometry::LineIntersection(
                     wall1.GetStartPoint(), wall1.GetEndPoint(),
@@ -732,18 +732,18 @@ namespace winrt::estimate1
                 intersection = join.JoinPoint;
             }
 
-            // Обрезаем только wall1
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ wall1
             if (join.Wall1AtStart)
                 wall1.SetStartPoint(intersection);
             else
                 wall1.SetEndPoint(intersection);
 
-            // wall2 не изменяется при T-соединении
+            // wall2 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ T-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
     };
 
     // =====================================================
-    // РЕНДЕРЕР СОЕДИНЕНИЙ
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     // =====================================================
 
     class WallJoinRenderer
@@ -751,7 +751,7 @@ namespace winrt::estimate1
     public:
         WallJoinRenderer() = default;
 
-        // Отрисовка превью соединения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void DrawJoinPreview(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -765,7 +765,7 @@ namespace winrt::estimate1
                 ? Windows::UI::ColorHelper::FromArgb(180, 0, 200, 100)
                 : Windows::UI::ColorHelper::FromArgb(180, 200, 100, 0);
 
-            // Точка соединения
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             ScreenPoint joinScreen = camera.WorldToScreen(join.JoinPoint);
             float radius = 8.0f;
 
@@ -774,7 +774,7 @@ namespace winrt::estimate1
                 radius,
                 color, 2.0f);
 
-            // Крест в центре
+            // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             float crossSize = 4.0f;
             session.DrawLine(
                 Windows::Foundation::Numerics::float2(joinScreen.X - crossSize, joinScreen.Y),
@@ -785,7 +785,7 @@ namespace winrt::estimate1
                 Windows::Foundation::Numerics::float2(joinScreen.X, joinScreen.Y + crossSize),
                 color, 1.5f);
 
-            // Точки митра-угла
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ
             if (!join.CornerPoints.empty())
             {
                 for (const auto& pt : join.CornerPoints)
@@ -799,7 +799,7 @@ namespace winrt::estimate1
             }
         }
 
-        // Отрисовка индикатора угла
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         void DrawAngleIndicator(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -810,18 +810,18 @@ namespace winrt::estimate1
 
             ScreenPoint center = camera.WorldToScreen(join.JoinPoint);
 
-            // Угол в градусах
+            // пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             double angleDeg = join.Angle * 180.0 / M_PI;
 
-            // Форматируем текст
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             wchar_t angleText[32];
-            swprintf_s(angleText, L"%.1f°", angleDeg);
+            swprintf_s(angleText, L"%.1fпїЅ", angleDeg);
 
-            // Позиция текста
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             float textX = center.X + 15.0f;
             float textY = center.Y - 20.0f;
 
-            // Фон для текста
+            // пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             auto textFormat = Microsoft::Graphics::Canvas::Text::CanvasTextFormat();
             textFormat.FontSize(11);
 
@@ -840,8 +840,8 @@ namespace winrt::estimate1
                 Windows::UI::ColorHelper::FromArgb(200, 255, 255, 200));
 
             Windows::UI::Color textColor = (std::abs(angleDeg - 90.0) < 1.0)
-                ? Windows::UI::ColorHelper::FromArgb(255, 0, 150, 0)     // Зелёный для 90°
-                : Windows::UI::ColorHelper::FromArgb(255, 200, 100, 0); // Оранжевый для других
+                ? Windows::UI::ColorHelper::FromArgb(255, 0, 150, 0)     // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 90пїЅ
+                : Windows::UI::ColorHelper::FromArgb(255, 200, 100, 0); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
             session.DrawText(
                 angleText,
@@ -850,7 +850,7 @@ namespace winrt::estimate1
                 textColor);
         }
 
-        // Отрисовка типа соединения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         void DrawJoinTypeBadge(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -867,11 +867,11 @@ namespace winrt::estimate1
             case JoinType::LJoin: typeName = L"L"; break;
             case JoinType::TJoin: typeName = L"T"; break;
             case JoinType::XJoin: typeName = L"X"; break;
-            case JoinType::Collinear: typeName = L"—"; break;
+            case JoinType::Collinear: typeName = L"пїЅ"; break;
             default: return;
             }
 
-            // Бэйдж
+            // пїЅпїЅпїЅпїЅпїЅ
             float badgeSize = 16.0f;
             session.FillCircle(
                 Windows::Foundation::Numerics::float2(pos.X - 20.0f, pos.Y - 20.0f),

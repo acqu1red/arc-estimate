@@ -53,10 +53,20 @@ namespace winrt::estimate1
         bool IsEndpoint{ false };        // Это конечная точка?
         bool IsValid{ false };           // Валидный кандидат?
 
+        // R-SNAP: Поля для выравнивания (Simple Alignment)
+        bool IsAlignment{ false };       // Это привязка выравнивания?
+        bool AlignmentHorizontal{ false };
+        bool AlignmentVertical{ false };
+        WorldPoint AlignmentSource{ 0, 0 }; // Точка, от которой идет выравнивание
+        std::wstring AlignmentLabel{ L"" }; // "Горизонталь" или "Вертикаль"
+
         // Для сравнения
         bool operator<(const WallSnapCandidate& other) const
         {
-            // Приоритет: endpoints > faces > centerline
+            // Приоритет: выравнивание < геометрия (геометрия важнее), endpoints > faces > centerline
+            if (IsValid && other.IsValid && IsAlignment != other.IsAlignment)
+                return !IsAlignment; // Геометрическая привязка в приоритете над выравниванием
+
             if (IsEndpoint != other.IsEndpoint)
                 return IsEndpoint; // Endpoints имеют приоритет
             
@@ -173,12 +183,86 @@ namespace winrt::estimate1
             double zoomFactor,
             uint64_t excludeWallId = 0)
         {
+            return FindBestSnap(cursor, std::nullopt, walls, zoomFactor, excludeWallId);
+        }
+
+        WallSnapCandidate FindBestSnap(
+            const WorldPoint& cursor,
+            const std::optional<WorldPoint>& startPoint,
+            const std::vector<std::unique_ptr<Wall>>& walls,
+            double zoomFactor,
+            uint64_t excludeWallId = 0)
+        {
             std::vector<WallSnapCandidate> candidates;
 
             // Преобразуем пороги из пикселей в мм
             double snapThresholdMM = m_snapThresholdPx / zoomFactor;
             double endpointThresholdMM = m_endpointThresholdPx / zoomFactor;
 
+            // 1. R-SNAP: Сначала проверяем выравнивание (Horizontal/Vertical)
+            WallSnapCandidate alignSnap;
+            alignSnap.IsValid = false;
+            alignSnap.ProjectedPoint = cursor;
+            alignSnap.IsAlignment = true;
+
+            const double alignmentThresholdMM = endpointThresholdMM * 0.8; // чуть строже чем порог точек
+
+            // Проверка ortho относительно точки старта
+            if (startPoint)
+            {
+                if (std::abs(cursor.Y - startPoint->Y) < alignmentThresholdMM)
+                {
+                    alignSnap.ProjectedPoint.Y = startPoint->Y;
+                    alignSnap.AlignmentHorizontal = true;
+                    alignSnap.AlignmentSource = *startPoint;
+                    alignSnap.AlignmentLabel = L"Горизонталь";
+                    alignSnap.IsValid = true;
+                }
+                if (std::abs(cursor.X - startPoint->X) < alignmentThresholdMM)
+                {
+                    alignSnap.ProjectedPoint.X = startPoint->X;
+                    alignSnap.AlignmentVertical = true;
+                    alignSnap.AlignmentSource = *startPoint;
+                    alignSnap.AlignmentLabel = L"Вертикаль";
+                    alignSnap.IsValid = true;
+                }
+            }
+
+            // Проверка выравнивания относительно всех концов других стен
+            for (const auto& wall : walls)
+            {
+                if (!wall || wall->GetId() == excludeWallId)
+                    continue;
+
+                WorldPoint pts[] = { wall->GetStartPoint(), wall->GetEndPoint() };
+                for (const auto& p : pts)
+                {
+                    if (!alignSnap.AlignmentHorizontal && std::abs(cursor.Y - p.Y) < alignmentThresholdMM)
+                    {
+                        alignSnap.ProjectedPoint.Y = p.Y;
+                        alignSnap.AlignmentHorizontal = true;
+                        alignSnap.AlignmentSource = p;
+                        alignSnap.AlignmentLabel = L"Горизонталь";
+                        alignSnap.IsValid = true;
+                    }
+                    if (!alignSnap.AlignmentVertical && std::abs(cursor.X - p.X) < alignmentThresholdMM)
+                    {
+                        alignSnap.ProjectedPoint.X = p.X;
+                        alignSnap.AlignmentVertical = true;
+                        alignSnap.AlignmentSource = p;
+                        alignSnap.AlignmentLabel = L"Вертикаль";
+                        alignSnap.IsValid = true;
+                    }
+                }
+            }
+
+            if (alignSnap.IsValid)
+            {
+                alignSnap.Distance = cursor.Distance(alignSnap.ProjectedPoint);
+                candidates.push_back(alignSnap);
+            }
+
+            // 2. Стандартная геометрическая привязка
             for (const auto& wall : walls)
             {
                 if (!wall || wall->GetId() == excludeWallId)

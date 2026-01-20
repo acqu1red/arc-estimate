@@ -139,6 +139,7 @@
     <ClInclude Include="IfcReferenceRenderer.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Layer.h" />
+    <ClInclude Include="LineWeightTable.h" />
     <ClInclude Include="MainViewModel.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Models.h" />
@@ -162,6 +163,8 @@
     <ClInclude Include="StructureTools.h" />
     <ClInclude Include="Tests.h" />
     <ClInclude Include="UndoManager.h" />
+    <ClInclude Include="ViewSettings.h" />
+    <ClInclude Include="WallPlanGeometry.h" />
     <ClInclude Include="WallRenderer.h" />
     <ClInclude Include="WallSnapRenderer.h" />
     <ClInclude Include="WallSnapSystem.h" />
@@ -230,6 +233,7 @@
     <None Include="docs\ROADMAP.md" />
     <None Include="docs\START_HERE.md" />
     <None Include="docs\WALL_FIX_SUMMARY.md" />
+    <None Include="docs\WALL_RENDERING_REFACTOR.md" />
     <None Include="docs\WALL_RENDERING_TECHNICAL_REPORT.md" />
     <None Include="docs\WALL_RENDERING_TEST_GUIDE.md" />
     <None Include="docs\WALL_STATIC_RENDERING_ROADMAP.md" />

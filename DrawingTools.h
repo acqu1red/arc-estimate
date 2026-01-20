@@ -134,7 +134,7 @@ namespace winrt::estimate1
         }
 
     private:
-        bool m_gridSnapEnabled{ true };
+        bool m_gridSnapEnabled{ false };
         bool m_endpointSnapEnabled{ true };
         bool m_midpointSnapEnabled{ true };
         double m_snapTolerance{ 15.0 };    // ������ � ��������

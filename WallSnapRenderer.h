@@ -72,6 +72,54 @@ namespace winrt::estimate1
         }
 
         // ============================================================
+        // Отрисовка линий выравнивания (пунктир и размеры как в AutoCAD)
+        // ============================================================
+
+        static void DrawAlignmentLines(
+            Microsoft::Graphics::Canvas::CanvasDrawingSession const& session,
+            const Camera& camera,
+            const WallSnapCandidate& snap)
+        {
+            if (!snap.IsValid || !snap.IsAlignment)
+                return;
+
+            Windows::UI::Color color = Windows::UI::ColorHelper::FromArgb(200, 0, 255, 255); // Cyan
+            
+            auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
+            strokeStyle.DashStyle(Microsoft::Graphics::Canvas::Geometry::CanvasDashStyle::Dash);
+
+            ScreenPoint p1 = camera.WorldToScreen(snap.AlignmentSource);
+            ScreenPoint p2 = camera.WorldToScreen(snap.ProjectedPoint);
+
+            // 1. Пунктирная линия вдоль оси стены (с выходом за края)
+            float dx = p2.X - p1.X;
+            float dy = p2.Y - p1.Y;
+            float len = std::sqrt(dx * dx + dy * dy);
+            
+            if (len > 1.0f)
+            {
+                float ux = dx / len;
+                float uy = dy / len;
+                float extension = 40.0f; // px
+
+                session.DrawLine(
+                    Windows::Foundation::Numerics::float2(p1.X - ux * extension, p1.Y - uy * extension),
+                    Windows::Foundation::Numerics::float2(p2.X + ux * extension, p2.Y + uy * extension),
+                    color, 0.8f, strokeStyle);
+
+                // 2. Временный размер над стеной
+                double distanceMM = snap.AlignmentSource.Distance(snap.ProjectedPoint);
+                if (distanceMM > 10.0)
+                {
+                    DrawAutoCadDimension(session, camera, snap.AlignmentSource, snap.ProjectedPoint, distanceMM);
+                }
+                
+                // 4. Двойная стрелочка (magenta) на конце как на фото
+                DrawDoubleArrow(session, camera, snap.ProjectedPoint, !snap.AlignmentHorizontal);
+            }
+        }
+
+        // ============================================================
         // Отрисовка тултипа с названием привязки
         // ============================================================
 
@@ -235,6 +283,91 @@ namespace winrt::estimate1
                 x, y,
                 Windows::UI::ColorHelper::FromArgb(200, 80, 80, 80),
                 textFormat);
+        }
+
+    private:
+        static void DrawAutoCadDimension(
+            Microsoft::Graphics::Canvas::CanvasDrawingSession const& session,
+            const Camera& camera,
+            const WorldPoint& start,
+            const WorldPoint& end,
+            double distanceMM)
+        {
+            ScreenPoint p1 = camera.WorldToScreen(start);
+            ScreenPoint p2 = camera.WorldToScreen(end);
+
+            float dx = p2.X - p1.X;
+            float dy = p2.Y - p1.Y;
+            float len = std::sqrt(dx * dx + dy * dy);
+            float ux = dx / len;
+            float uy = dy / len;
+            float px = -uy; // Perpendicular
+            float py = ux;
+
+            float offset = -40.0f; // Смещение вверх (в Win2D Y уменьшается вверх)
+            
+            ScreenPoint d1(p1.X + px * offset, p1.Y + py * offset);
+            ScreenPoint d2(p2.X + px * offset, p2.Y + py * offset);
+
+            Windows::UI::Color dimColor = Windows::UI::ColorHelper::FromArgb(255, 120, 120, 140);
+            Windows::UI::Color textColor = Windows::UI::ColorHelper::FromArgb(255, 255, 180, 100); // Оранжевый из фото
+
+            // Размерная линия
+            session.DrawLine(d1.X, d1.Y, d2.X, d2.Y, dimColor, 1.2f);
+
+            // Короткие выносные линии (перпендикулярные к стене)
+            float ext = 10.0f;
+            session.DrawLine(d1.X - px * ext, d1.Y - py * ext, d1.X + px * ext, d1.Y + py * ext, dimColor, 1.0f);
+            session.DrawLine(d2.X - px * ext, d2.Y - py * ext, d2.X + px * ext, d2.Y + py * ext, dimColor, 1.0f);
+
+            // Засечки (?) - под углом 45 градусов
+            float tickSize = 6.0f;
+            float tx = (ux + px) * tickSize;
+            float ty = (uy + py) * tickSize;
+            session.DrawLine(d1.X - tx, d1.Y - ty, d1.X + tx, d1.Y + ty, dimColor, 2.0f);
+            session.DrawLine(d2.X - tx, d2.Y - ty, d2.X + tx, d2.Y + ty, dimColor, 2.0f);
+
+            // Текст
+            wchar_t distText[32];
+            swprintf_s(distText, L"%.1f", distanceMM);
+            
+            auto format = Microsoft::Graphics::Canvas::Text::CanvasTextFormat();
+            format.FontSize(11.0f);
+            format.HorizontalAlignment(Microsoft::Graphics::Canvas::Text::CanvasHorizontalAlignment::Center);
+
+            session.DrawText(distText, 
+                Windows::Foundation::Numerics::float2((d1.X + d2.X) / 2, (d1.Y + d2.Y) / 2 - 16.0f),
+                textColor, format);
+        }
+
+        static void DrawDoubleArrow(
+            Microsoft::Graphics::Canvas::CanvasDrawingSession const& session,
+            const Camera& camera,
+            const WorldPoint& point,
+            bool vertical)
+        {
+            ScreenPoint sp = camera.WorldToScreen(point);
+            float s = 6.0f;
+            Windows::UI::Color color = Windows::UI::ColorHelper::FromArgb(255, 255, 0, 255); // Magenta
+
+            if (vertical)
+            {
+                // Вертикальная двойная стрелочка
+                session.DrawLine(sp.X, sp.Y - s, sp.X, sp.Y + s, color, 2.0f);
+                session.DrawLine(sp.X - 3, sp.Y - s + 3, sp.X, sp.Y - s, color, 2.0f);
+                session.DrawLine(sp.X + 3, sp.Y - s + 3, sp.X, sp.Y - s, color, 2.0f);
+                session.DrawLine(sp.X - 3, sp.Y + s - 3, sp.X, sp.Y + s, color, 2.0f);
+                session.DrawLine(sp.X + 3, sp.Y + s - 3, sp.X, sp.Y + s, color, 2.0f);
+            }
+            else
+            {
+                // Горизонтальная двойная стрелочка
+                session.DrawLine(sp.X - s, sp.Y, sp.X + s, sp.Y, color, 2.0f);
+                session.DrawLine(sp.X - s + 3, sp.Y - 3, sp.X - s, sp.Y, color, 2.0f);
+                session.DrawLine(sp.X - s + 3, sp.Y + 3, sp.X - s, sp.Y, color, 2.0f);
+                session.DrawLine(sp.X + s - 3, sp.Y - 3, sp.X + s, sp.Y, color, 2.0f);
+                session.DrawLine(sp.X + s - 3, sp.Y + 3, sp.X + s, sp.Y, color, 2.0f);
+            }
         }
 
     private:
