@@ -326,6 +326,61 @@ auto result = engine.Calculate(documentModel);
 // result.GrandTotal, result.Items, etc.
 ```
 
+## Recent Changes (2026-01-22)
+
+### Scalable Wall Outline (Revit-Style Rendering)
+
+**Status:** ✅ FULLY IMPLEMENTED AND WORKING
+
+Implemented Revit-like wall outline behavior where the outline thickness scales with camera zoom, allowing users to zoom "into" the outline itself.
+
+#### Problem Solved:
+Previously, wall outlines had fixed thickness in screen pixels (always 3px), making them appear constant regardless of zoom level. This prevented zooming into the outline geometry.
+
+#### Solution:
+Changed outline thickness from screen-space to world-space coordinates:
+- **Before:** `outlineWorldThickness = screenStrokeWidth / camera.GetZoom()` (compensates zoom)
+- **After:** `outlineWorldThickness = 8.0` (constant in millimeters)
+
+#### Key Changes:
+**File:** `WallRenderer.h`
+1. Added constant: `double m_fixedOutlineThicknessMm{ 8.0 }` (line ~493)
+2. Main outline: Changed from screen-pixel formula to fixed 8.0 mm (lines 146-157)
+3. Layer boundaries: Changed to 50% of main outline = 4.0 mm (lines 173-176)
+
+#### Behavior:
+| Zoom Level | Outline on Screen |
+|------------|------------------|
+| 0.5x | ~4 pixels (thin) |
+| 1.0x | ~8 pixels (normal) |
+| 4.0x | ~32 pixels (thick) |
+| 10.0x | ~80 pixels (wide band) |
+
+**Result:** Outline now scales naturally with zoom, matching Revit behavior. Users can zoom in and see the outline as a real geometric band.
+
+#### Configuration:
+To adjust outline thickness, modify `m_fixedOutlineThicknessMm` in `WallRenderer.h`:
+- **Thinner:** 4.0-6.0 mm (for overview drawings)
+- **Standard:** 8.0 mm (current, recommended)
+- **Thicker:** 10.0-12.0 mm (for detailed drawings)
+
+---
+
+### Wall Default Thickness Changed to 200mm
+
+**Status:** ✅ IMPLEMENTED
+
+Changed default wall thickness from 150mm to 200mm to match standard construction practices.
+
+#### Key Changes:
+**File:** `Models.h`
+1. Constructor parameter: `Wall(..., double thickness = 200.0)` (line 79, was 150.0)
+2. Member variable: `double m_thickness{ 200.0 }` (line 241, was 150.0)
+
+**Result:** New walls are now created with 200mm thickness by default in both preview and placement.
+
+---
+
 ## Recent Changes (2026-01-19)
 
 ### WallAttachmentSystem Integration

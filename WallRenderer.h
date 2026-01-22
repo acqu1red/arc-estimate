@@ -16,10 +16,10 @@ namespace winrt::estimate1
     // =================================================================
     // Key behaviors:
     // 1. Wall body geometry grows with zoom (viewport zoom)
-    // 2. Outline stroke thickness stays CONSTANT on screen (screen-space lineweight)
-    // 3. Lineweight is controlled by VIEW SCALE (1:50 vs 1:100), not camera zoom
-    // 4. Thin Lines toggle: when ON, all strokes are hairline width
-    // 5. At extreme zoom, you see boundary strokes, NOT a solid fill covering viewport
+    // 2. Outline is GEOMETRY, not stroke - grows with zoom like in Revit
+    // 3. Lineweight is controlled by VIEW SCALE (1:50 vs 1:100)
+    // 4. At extreme zoom, you can zoom INTO the outline itself
+    // 5. Outline is rendered as filled geometry band, not as stroke
     // =================================================================
 
     class WallRenderer
@@ -145,54 +145,45 @@ namespace winrt::estimate1
 
             // Determine colors based on state
             Windows::UI::Color strokeColor = DetermineStrokeColor(wall, isPreview, isHovered);
-            
-            // Get stroke width from lineweight table - INDEPENDENT OF ZOOM
-            float strokeWidth = m_lineWeightTable.GetCategoryStrokeWidth(
-                LineCategory::WallCut, viewSettings);
-            
-            // Add extra width for selection
+
+            // REVIT-STYLE: Fixed thickness in WORLD coordinates (millimeters)
+            // This thickness scales with zoom - at higher zoom, outline appears thicker
+            // This allows zooming "into" the outline itself, seeing it as a real band
+            double outlineWorldThickness = m_fixedOutlineThicknessMm;
+
+            // Add extra width for selection (in world units)
             if (wall.IsSelected())
             {
-                strokeWidth += m_lineWeightTable.GetSelectionStrokeAddition();
+                outlineWorldThickness += 1.0; // Add 1mm for selection highlight
             }
-
-            // Configure stroke style with Fixed transform behavior
-            // This keeps the stroke width constant in screen pixels regardless of zoom
-            auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
-            strokeStyle.LineJoin(Microsoft::Graphics::Canvas::Geometry::CanvasLineJoin::Miter);
-            strokeStyle.StartCap(Microsoft::Graphics::Canvas::Geometry::CanvasCapStyle::Square);
-            strokeStyle.EndCap(Microsoft::Graphics::Canvas::Geometry::CanvasCapStyle::Square);
-            strokeStyle.TransformBehavior(
-                Microsoft::Graphics::Canvas::Geometry::CanvasStrokeTransformBehavior::Fixed);
 
             // Apply dashed style for demolish state
             WorkStateNative state = wall.GetWorkState();
             if (state == WorkStateNative::Demolish)
             {
-                strokeStyle.DashStyle(Microsoft::Graphics::Canvas::Geometry::CanvasDashStyle::Dash);
                 strokeColor.A = 180;
             }
 
             // =================================================================
-            // DRAW WALL BOUNDARY AS A CLOSED CONTOUR (NOT SEPARATE PIECES)
-            // This ensures clean joints and consistent screen-space lineweight.
+            // REVIT-STYLE RENDERING: Outline as GEOMETRY, not stroke
+            // Draw the outline as a filled band around the wall boundary
+            // This makes it part of world geometry - it scales with zoom!
             // =================================================================
             
-            // Draw the single closed geometric contour
-            DrawPolyline(session, camera, geometry.BoundaryPath, strokeColor, strokeWidth, strokeStyle);
+            DrawWallWithGeometricOutline(session, camera, geometry, strokeColor, outlineWorldThickness);
 
             // Draw layer boundaries for Fine detail level
             if (viewSettings.GetDetailLevel() == DetailLevel::Fine)
             {
-                float layerStrokeWidth = m_lineWeightTable.GetCategoryStrokeWidth(
-                    LineCategory::WallLayerBoundary, viewSettings);
-                
+                // Layer boundaries use thinner outline (half of main outline)
+                double layerWorldThickness = m_fixedOutlineThicknessMm * 0.5;
+
                 Windows::UI::Color layerColor = m_lineWeightTable.GetStyle(
                     LineCategory::WallLayerBoundary).Color;
 
                 for (const auto& layerBoundary : geometry.LayerBoundaries)
                 {
-                    DrawPolyline(session, camera, layerBoundary, layerColor, layerStrokeWidth, strokeStyle);
+                    DrawPolylineAsGeometry(session, camera, layerBoundary, layerColor, layerWorldThickness);
                 }
             }
 
@@ -203,7 +194,128 @@ namespace winrt::estimate1
             }
         }
 
-        // Draw a world-space polyline with screen-space constant stroke width
+        // =================================================================
+        // REVIT-STYLE: Draw wall with GEOMETRIC outline (not stroke)
+        // The outline is rendered as a filled band that is part of world geometry
+        // This makes it scale with zoom naturally
+        // =================================================================
+        void DrawWallWithGeometricOutline(
+            const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
+            const Camera& camera,
+            const WallPlanGeometry& geometry,
+            Windows::UI::Color outlineColor,
+            double outlineWorldThickness)
+        {
+            if (geometry.BoundaryPath.Points.size() < 2)
+                return;
+
+            // Create the geometry in WORLD coordinates
+            auto pathBuilder = Microsoft::Graphics::Canvas::Geometry::CanvasPathBuilder(session.Device());
+            
+            const auto& points = geometry.BoundaryPath.Points;
+            pathBuilder.BeginFigure(Windows::Foundation::Numerics::float2(
+                static_cast<float>(points[0].X),
+                static_cast<float>(points[0].Y)));
+            
+            for (size_t i = 1; i < points.size(); ++i)
+            {
+                pathBuilder.AddLine(Windows::Foundation::Numerics::float2(
+                    static_cast<float>(points[i].X),
+                    static_cast<float>(points[i].Y)));
+            }
+            
+            pathBuilder.EndFigure(geometry.BoundaryPath.IsClosed 
+                ? Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Closed
+                : Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Open);
+
+            auto worldGeometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(pathBuilder);
+            
+            // Create camera transformation
+            float centerX = camera.GetCanvasWidth() / 2.0f;
+            float centerY = camera.GetCanvasHeight() / 2.0f;
+            float zoom = static_cast<float>(camera.GetZoom());
+            float offsetX = static_cast<float>(-camera.GetOffset().X);
+            float offsetY = static_cast<float>(-camera.GetOffset().Y);
+            
+            auto transform = Windows::Foundation::Numerics::make_float3x2_translation(-offsetX, -offsetY) *
+                           Windows::Foundation::Numerics::make_float3x2_scale(zoom) *
+                           Windows::Foundation::Numerics::make_float3x2_translation(centerX, centerY);
+            
+            // CRITICAL: Use hairline stroke with Normal behavior to draw the outline
+            // The key is that outlineWorldThickness is in WORLD units (mm)
+            // When transformed by zoom, it becomes proportionally larger on screen
+            auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
+            strokeStyle.LineJoin(Microsoft::Graphics::Canvas::Geometry::CanvasLineJoin::Miter);
+            strokeStyle.StartCap(Microsoft::Graphics::Canvas::Geometry::CanvasCapStyle::Flat);
+            strokeStyle.EndCap(Microsoft::Graphics::Canvas::Geometry::CanvasCapStyle::Flat);
+            strokeStyle.TransformBehavior(
+                Microsoft::Graphics::Canvas::Geometry::CanvasStrokeTransformBehavior::Normal);
+
+            auto oldTransform = session.Transform();
+            session.Transform(transform);
+            
+            // Draw outline with world-space thickness
+            session.DrawGeometry(worldGeometry, outlineColor, 
+                static_cast<float>(outlineWorldThickness), strokeStyle);
+            
+            session.Transform(oldTransform);
+        }
+
+        // Draw polyline as geometric outline (for layer boundaries)
+        void DrawPolylineAsGeometry(
+            const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
+            const Camera& camera,
+            const WorldPolyline& polyline,
+            Windows::UI::Color color,
+            double worldThickness)
+        {
+            if (polyline.Points.size() < 2)
+                return;
+
+            auto pathBuilder = Microsoft::Graphics::Canvas::Geometry::CanvasPathBuilder(session.Device());
+            
+            pathBuilder.BeginFigure(Windows::Foundation::Numerics::float2(
+                static_cast<float>(polyline.Points[0].X),
+                static_cast<float>(polyline.Points[0].Y)));
+            
+            for (size_t i = 1; i < polyline.Points.size(); ++i)
+            {
+                pathBuilder.AddLine(Windows::Foundation::Numerics::float2(
+                    static_cast<float>(polyline.Points[i].X),
+                    static_cast<float>(polyline.Points[i].Y)));
+            }
+            
+            pathBuilder.EndFigure(polyline.IsClosed 
+                ? Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Closed
+                : Microsoft::Graphics::Canvas::Geometry::CanvasFigureLoop::Open);
+
+            auto worldGeometry = Microsoft::Graphics::Canvas::Geometry::CanvasGeometry::CreatePath(pathBuilder);
+            
+            float centerX = camera.GetCanvasWidth() / 2.0f;
+            float centerY = camera.GetCanvasHeight() / 2.0f;
+            float zoom = static_cast<float>(camera.GetZoom());
+            float offsetX = static_cast<float>(-camera.GetOffset().X);
+            float offsetY = static_cast<float>(-camera.GetOffset().Y);
+            
+            auto transform = Windows::Foundation::Numerics::make_float3x2_translation(-offsetX, -offsetY) *
+                           Windows::Foundation::Numerics::make_float3x2_scale(zoom) *
+                           Windows::Foundation::Numerics::make_float3x2_translation(centerX, centerY);
+
+            auto strokeStyle = Microsoft::Graphics::Canvas::Geometry::CanvasStrokeStyle();
+            strokeStyle.LineJoin(Microsoft::Graphics::Canvas::Geometry::CanvasLineJoin::Miter);
+            strokeStyle.TransformBehavior(
+                Microsoft::Graphics::Canvas::Geometry::CanvasStrokeTransformBehavior::Normal);
+
+            auto oldTransform = session.Transform();
+            session.Transform(transform);
+            
+            session.DrawGeometry(worldGeometry, color, 
+                static_cast<float>(worldThickness), strokeStyle);
+            
+            session.Transform(oldTransform);
+        }
+
+        // Legacy method - can be removed if not used elsewhere
         void DrawPolyline(
             const Microsoft::Graphics::Canvas::CanvasDrawingSession& session,
             const Camera& camera,
@@ -247,11 +359,17 @@ namespace winrt::estimate1
                            Windows::Foundation::Numerics::make_float3x2_scale(zoom) *
                            Windows::Foundation::Numerics::make_float3x2_translation(centerX, centerY);
             
-            // Transform geometry to screen space
-            auto screenGeometry = worldGeometry.Transform(transform);
+            // REVIT-LIKE BEHAVIOR: Apply transform to DrawingSession
+            // With Normal stroke behavior, the outline SCALES WITH ZOOM
+            // User can zoom in and see the outline grow, eventually zooming "into" the line itself
+            auto oldTransform = session.Transform();
+            session.Transform(transform);
             
-            // Draw with Fixed stroke width (will not scale with transformation)
-            session.DrawGeometry(screenGeometry, color, strokeWidth, strokeStyle);
+            // Draw geometry in WORLD coordinates - stroke scales with zoom
+            session.DrawGeometry(worldGeometry, color, strokeWidth, strokeStyle);
+            
+            // Restore original transform
+            session.Transform(oldTransform);
         }
 
         // Draw optional selection/hover fill
@@ -363,5 +481,9 @@ namespace winrt::estimate1
         
         // Whether to show selection fill (subtle fill for selected/hovered walls)
         bool m_showSelectionFill{ true };
+
+        // Fixed outline thickness in world coordinates (millimeters)
+        // This makes the outline scale with zoom, allowing zoom "into" the outline
+        double m_fixedOutlineThicknessMm{ 8.0 };
     };
 }

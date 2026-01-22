@@ -76,7 +76,7 @@ namespace winrt::estimate1
     public:
         Wall() = default;
 
-        Wall(const WorldPoint& start, const WorldPoint& end, double thickness = 150.0)
+        Wall(const WorldPoint& start, const WorldPoint& end, double thickness = 200.0)
             : m_startPoint(start)
             , m_endPoint(end)
             , m_thickness(thickness)
@@ -238,7 +238,7 @@ namespace winrt::estimate1
 
         WorldPoint m_startPoint{ 0, 0 };
         WorldPoint m_endPoint{ 0, 0 };
-        double m_thickness{ 150.0 };
+        double m_thickness{ 200.0 };
         double m_height{ 2700.0 };
         std::shared_ptr<WallType> m_type{};
         LocationLineMode m_locationLineMode{ LocationLineMode::WallCenterline };
